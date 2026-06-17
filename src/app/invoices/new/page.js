@@ -12,6 +12,7 @@ import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import { DEFAULT_SELLER, DEFAULT_BUYER, DEFAULT_INVOICE_META, DEFAULT_LINE_ITEM } from '@/constants/defaultValues';
 import { createClient } from '@/utils/supabase/client';
+import LineItemsTable from '@/components/forms/LineItemsTable';
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -314,24 +315,16 @@ export default function NewInvoicePage() {
                   onChange={handleBuyerChange} 
                 />
                 
-                {/* Visual placeholder summary for line items */}
-                <div className="bg-[#111111] border border-[#2a2a2a] rounded-xl p-6 shadow-sm flex flex-col gap-3">
-                  <h3 className="text-xs font-semibold text-[#888] uppercase tracking-wider pl-2 border-l-2 border-[#5e6ad2]">
-                    Line Items & Summary
-                  </h3>
-                  <div className="text-[12px] text-[#555] py-4 text-center border border-dashed border-[#2a2a2a] rounded-lg bg-[#141414]">
-                    Items list editor, calculations, and PDF generator will bind directly below this section.
-                  </div>
-                  <div className="flex justify-between items-center text-xs pt-2 font-mono text-[#888]">
-                    <span>Detected Mode:</span>
-                    <span className="text-[#e2e8f0] font-semibold bg-[#252525] px-2 py-0.5 rounded uppercase">
-                      {buyerData.taxMode || 'intrastate'}
-                    </span>
-                  </div>
-                </div>
               </div>
               
             </div>
+
+            {/* Line Items Table & calculations */}
+            <LineItemsTable 
+              items={lineItems} 
+              taxMode={buyerData.taxMode || 'intrastate'} 
+              onChange={setLineItems} 
+            />
           </div>
         </div>
 
