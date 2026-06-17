@@ -18,3 +18,5 @@ node_modules
 # build directories
 /build
 /dist
+
+.vercel
