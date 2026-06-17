@@ -474,7 +474,7 @@ export default function InvoicePreview({ invoiceData = {} }) {
               <div className="flex flex-col justify-end min-h-[70px]">
                 <div className="border-t border-dashed border-slate-300 w-full mb-1" />
                 <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold text-center">
-                  Receiver's Signature
+                  Receiver&apos;s Signature
                 </span>
               </div>
 

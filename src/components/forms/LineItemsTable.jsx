@@ -162,13 +162,21 @@ export default function LineItemsTable({
 
   // Delete row handler
   const handleDeleteRow = (itemId) => {
-    if (items.length <= 1) return;
     const filtered = items.filter((item) => item.id !== itemId);
-    const updated = filtered.map((item, idx) => ({
-      ...item,
-      srNo: idx + 1
-    }));
-    onChange(updated);
+    if (filtered.length === 0) {
+      const resetItem = {
+        ...DEFAULT_LINE_ITEM(),
+        id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
+        srNo: 1
+      };
+      onChange([resetItem]);
+    } else {
+      const updated = filtered.map((item, idx) => ({
+        ...item,
+        srNo: idx + 1
+      }));
+      onChange(updated);
+    }
   };
 
   // Fetch colors based on GST rate selection
@@ -409,8 +417,7 @@ export default function LineItemsTable({
                               <button
                                 type="button"
                                 onClick={() => handleDeleteRow(item.id)}
-                                disabled={items.length <= 1}
-                                className="text-red-400 hover:text-red-500 disabled:text-[#3a3a3a] disabled:cursor-not-allowed transition-colors p-1"
+                                className="text-red-400 hover:text-red-500 transition-colors p-1"
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -467,8 +474,7 @@ export default function LineItemsTable({
                           <button
                             type="button"
                             onClick={() => handleDeleteRow(item.id)}
-                            disabled={items.length <= 1}
-                            className="text-red-400 hover:text-red-500 disabled:text-[#3a3a3a] disabled:cursor-not-allowed transition-colors p-1"
+                            className="text-red-400 hover:text-red-500 transition-colors p-1"
                           >
                             <Trash2 size={15} />
                           </button>

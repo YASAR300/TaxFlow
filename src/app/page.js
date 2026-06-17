@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import InvoiceMetaForm from '@/components/forms/InvoiceMetaForm';
 import SellerForm from '@/components/forms/SellerForm';
@@ -11,16 +11,20 @@ import BankDetails from '@/components/forms/BankDetails';
 import CustomizationPanel from '@/components/forms/CustomizationPanel';
 import InvoicePreview from '@/components/preview/InvoicePreview';
 import DraftBanner from '@/components/DraftBanner';
+import HistoryDrawer from '@/components/HistoryDrawer';
 import useInvoiceBuilder from '@/hooks/useInvoiceBuilder';
 import { printInvoice } from '@/utils/pdfGenerator';
 import Button from '@/components/ui/Button';
-import { MessageCircle, Download, Printer, Save, FilePlus, Copy } from 'lucide-react';
+import { MessageCircle, Download, Printer, Save, FilePlus, Copy, Eye } from 'lucide-react';
 
 /**
  * Main application dashboard wiring all components together.
  */
 export default function InvoiceBuilderPage() {
   const mockUser = { email: 'developer@example.com' };
+  
+  // History Drawer state
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Load state and operations from our master state manager hook
   const {
@@ -49,9 +53,22 @@ export default function InvoiceBuilderPage() {
     handleDownloadPDF,
     handleNewInvoice,
     handleLoadDraft,
+    handleLoadInvoice,
     handleDuplicateInvoice,
     handleDismissDraft,
   } = useInvoiceBuilder();
+
+  // Keyboard shortcut Ctrl+S or Cmd+S to save
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSaveInvoice();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleSaveInvoice]);
 
   // Create WhatsApp sharing payload
   const whatsappMessage = `Hi ${buyerInfo.businessName || 'Client'}, please find invoice ${
@@ -87,6 +104,16 @@ export default function InvoiceBuilderPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* History Trigger Action */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setHistoryOpen(true)}
+              className="text-[#888] hover:text-[#ccc] border-[#2a2a2a] bg-[#1a1a1a] hover:bg-[#252525]"
+            >
+              History
+            </Button>
+
             {/* Save Draft Action */}
             <Button
               variant="secondary"
@@ -249,6 +276,27 @@ export default function InvoiceBuilderPage() {
 
         </div>
 
+        {/* History slide-over drawer */}
+        <HistoryDrawer
+          isOpen={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          onLoadInvoice={handleLoadInvoice}
+        />
+
+        {/* Floating Mobile scroll to preview widget */}
+        <button
+          type="button"
+          onClick={() => {
+            const previewEl = document.getElementById('invoice-preview-content');
+            if (previewEl) {
+              previewEl.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
+          className="md:hidden fixed bottom-4 right-4 bg-blue-600 text-white rounded-full p-3 shadow-lg z-30 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center"
+          title="Scroll to Preview"
+        >
+          <Eye size={20} className="text-white" />
+        </button>
       </div>
     </div>
   );
