@@ -86,7 +86,7 @@ function HeroDashboardPreview() {
         <div className="w-56 border-r border-white/[0.04] bg-[#08080a] p-4 flex flex-col justify-between shrink-0">
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-2 py-1 bg-white/[0.03] border border-white/[0.05] rounded-md">
-              <div className="w-5 h-5 rounded bg-[#5e6ad2] flex items-center justify-center text-white font-bold text-[10px]">T</div>
+              <Image src="/logo.png" alt="TaxFlow Logo" width={18} height={18} className="rounded object-contain" />
               <div className="text-left leading-none">
                 <p className="text-[11px] font-medium text-white">TaxFlow Workspace</p>
                 <p className="text-[9px] text-[#555]">Standard Plan</p>
@@ -259,10 +259,8 @@ export default function LandingPage() {
         }`}>
         <div className="max-w-[1280px] mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 z-50 group">
-            <div className="w-5 h-5 rounded-md bg-white flex items-center justify-center transition-transform group-hover:scale-[1.05]">
-              <span className="text-black font-black text-[12px]">T</span>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 z-50 group">
+            <Image src="/logo.png" alt="TaxFlow Logo" width={22} height={22} className="rounded-md object-contain transition-transform group-hover:scale-[1.05]" />
             <span className="text-[14px] font-semibold tracking-tight text-white">TaxFlow</span>
           </Link>
 
@@ -847,9 +845,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-16">
             <div className="col-span-2 space-y-4">
               <div className="flex items-center gap-2">
-                <div className="w-4.5 h-4.5 rounded bg-white flex items-center justify-center">
-                  <span className="text-black font-black text-[10px] px-1">T</span>
-                </div>
+                <Image src="/logo.png" alt="TaxFlow Logo" width={20} height={20} className="rounded object-contain" />
                 <span className="text-[13px] font-semibold text-white tracking-tight">TaxFlow</span>
               </div>
               <p className="text-[12px] text-[#8a8b98] leading-relaxed max-w-[200px]">

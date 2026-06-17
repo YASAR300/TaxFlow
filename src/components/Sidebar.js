@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { createClient } from '@/utils/supabase/client';
 import {
   LayoutDashboard, FileText, Users, Building2,
@@ -61,9 +62,7 @@ export default function Sidebar({ user }) {
     <aside className="w-[220px] shrink-0 border-r border-[#2a2a2a] bg-[#111111] flex flex-col h-screen">
       {/* Workspace Header */}
       <div className="h-11 flex items-center px-3 border-b border-[#2a2a2a] gap-2 shrink-0">
-        <div className="w-5 h-5 rounded bg-[#5e6ad2] flex items-center justify-center shrink-0">
-          <Zap size={11} className="text-white" strokeWidth={2.5} />
-        </div>
+        <Image src="/logo.png" alt="TaxFlow Logo" width={20} height={20} className="rounded object-contain shrink-0" />
         <span className="text-[13px] font-semibold text-[#e2e8f0] flex-1 truncate">TaxFlow</span>
         <span className="text-[10px] text-[#555] bg-[#1e1e1e] border border-[#2a2a2a] rounded px-1.5 py-0.5 font-medium shrink-0">GST</span>
         <ChevronDown size={13} className="text-[#555] shrink-0" />

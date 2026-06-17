@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
 import { Loader2, Zap } from 'lucide-react';
@@ -104,10 +105,8 @@ function LoginContent() {
   return (
     <div className="w-full max-w-sm">
       {/* Logo */}
-      <div className="flex items-center justify-center gap-2 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-[#5e6ad2] flex items-center justify-center">
-          <Zap size={16} className="text-white" strokeWidth={2.5} />
-        </div>
+      <div className="flex items-center justify-center gap-2.5 mb-8">
+        <Image src="/logo.png" alt="TaxFlow Logo" width={26} height={26} className="rounded object-contain" />
         <span className="text-[17px] font-semibold text-[#e2e8f0]">TaxFlow</span>
         <span className="text-[11px] text-[#555] bg-[#1e1e1e] border border-[#2a2a2a] rounded px-1.5 py-0.5 font-medium">GST</span>
       </div>
