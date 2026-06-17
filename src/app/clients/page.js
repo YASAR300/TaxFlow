@@ -252,9 +252,13 @@ export default function ClientsPage() {
                 <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-400">
                   <Users size={16} />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-[10px] text-[#555] uppercase font-bold tracking-wider">Total Clients</p>
-                  <p className="text-lg font-bold text-[#ccc]">{stats.totalClients}</p>
+                  {loading ? (
+                    <div className="h-5 bg-[#222] rounded w-12 mt-1 animate-pulse" />
+                  ) : (
+                    <p className="text-lg font-bold text-[#ccc]">{stats.totalClients}</p>
+                  )}
                 </div>
               </div>
               
@@ -262,9 +266,13 @@ export default function ClientsPage() {
                 <div className="w-8 h-8 rounded bg-emerald-500/10 flex items-center justify-center text-emerald-400">
                   <DollarSign size={16} />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-[10px] text-[#555] uppercase font-bold tracking-wider">Total Billed</p>
-                  <p className="text-lg font-bold text-emerald-400">₹{(stats.totalBilled || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                  {loading ? (
+                    <div className="h-5 bg-[#222] rounded w-28 mt-1 animate-pulse" />
+                  ) : (
+                    <p className="text-lg font-bold text-emerald-400">₹{(stats.totalBilled || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                  )}
                 </div>
               </div>
 
@@ -272,9 +280,13 @@ export default function ClientsPage() {
                 <div className="w-8 h-8 rounded bg-orange-500/10 flex items-center justify-center text-orange-400">
                   <FileText size={16} />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-[10px] text-[#555] uppercase font-bold tracking-wider">Avg Billing / Client</p>
-                  <p className="text-lg font-bold text-orange-400">₹{(stats.avgBilled || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                  {loading ? (
+                    <div className="h-5 bg-[#222] rounded. w-24 mt-1 animate-pulse" />
+                  ) : (
+                    <p className="text-lg font-bold text-orange-400">₹{(stats.avgBilled || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -310,12 +322,27 @@ export default function ClientsPage() {
                   </thead>
                   <tbody className="divide-y divide-[#1e1e1e]">
                     {loading ? (
-                      <tr>
-                        <td colSpan={7} className="px-4 py-12 text-center">
-                          <Loader2 size={20} className="animate-spin text-[#5e6ad2] mx-auto mb-2" />
-                          <span className="text-xs text-[#555]">Loading clients list...</span>
-                        </td>
-                      </tr>
+                      [...Array(5)].map((_, i) => (
+                        <tr key={i} className="animate-pulse">
+                          <td className="px-4 py-4"><div className="h-4 bg-[#222] rounded w-28"></div></td>
+                          <td className="px-4 py-4"><div className="h-4 bg-[#222] rounded w-24"></div></td>
+                          <td className="px-4 py-4">
+                            <div className="flex flex-col gap-1">
+                              <div className="h-3.5 bg-[#222] rounded w-28"></div>
+                              <div className="h-2.5 bg-[#222] rounded w-20"></div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="flex flex-col gap-1">
+                              <div className="h-3.5 bg-[#222] rounded w-32"></div>
+                              <div className="h-3 bg-[#222] rounded w-24"></div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-right"><div className="h-4 bg-[#222] rounded w-8 ml-auto"></div></td>
+                          <td className="px-4 py-4 text-right"><div className="h-4 bg-[#222] rounded w-16 ml-auto"></div></td>
+                          <td className="px-4 py-4 text-center"><div className="h-4 bg-[#222] rounded w-8 mx-auto"></div></td>
+                        </tr>
+                      ))
                     ) : clients.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="px-4 py-12 text-center">

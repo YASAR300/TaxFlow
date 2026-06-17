@@ -275,10 +275,25 @@ export default function InvoicesListPage() {
 
             {/* Quick Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              <StatCard label="Invoiced Total" value={`₹${(summary.totalAmount || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`} />
-              <StatCard label="Paid Status" value={summary.paidCount || '0'} color="text-emerald-400" />
-              <StatCard label="Pending Sent" value={totalCount - (summary.paidCount + summary.draftCount) || '0'} color="text-blue-400" />
-              <StatCard label="Drafts" value={summary.draftCount || '0'} color="text-[#999]" />
+              <StatCard 
+                label="Invoiced Total" 
+                value={loading ? <div className="h-6 bg-[#222] rounded w-24 my-0.5 animate-pulse" /> : `₹${(summary.totalAmount || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`} 
+              />
+              <StatCard 
+                label="Paid Status" 
+                value={loading ? <div className="h-6 bg-[#222] rounded w-10 my-0.5 animate-pulse" /> : summary.paidCount || '0'} 
+                color="text-emerald-400" 
+              />
+              <StatCard 
+                label="Pending Sent" 
+                value={loading ? <div className="h-6 bg-[#222] rounded w-10 my-0.5 animate-pulse" /> : totalCount - (summary.paidCount + summary.draftCount) || '0'} 
+                color="text-blue-400" 
+              />
+              <StatCard 
+                label="Drafts" 
+                value={loading ? <div className="h-6 bg-[#222] rounded w-10 my-0.5 animate-pulse" /> : summary.draftCount || '0'} 
+                color="text-[#999]" 
+              />
             </div>
 
             {/* Filter bar */}
@@ -330,12 +345,17 @@ export default function InvoicesListPage() {
                   </thead>
                   <tbody className="divide-y divide-[#1e1e1e]">
                     {loading ? (
-                      <tr>
-                        <td colSpan={7} className="px-4 py-12 text-center">
-                          <Loader2 size={20} className="animate-spin text-[#5e6ad2] mx-auto mb-2" />
-                          <span className="text-xs text-[#555]">Loading invoices...</span>
-                        </td>
-                      </tr>
+                      [...Array(5)].map((_, i) => (
+                        <tr key={i} className="animate-pulse">
+                          <td className="px-4 py-4"><div className="h-4 bg-[#222] rounded w-24"></div></td>
+                          <td className="px-4 py-4"><div className="h-4 bg-[#222] rounded w-32"></div></td>
+                          <td className="px-4 py-4"><div className="h-4 bg-[#222] rounded w-20"></div></td>
+                          <td className="px-4 py-4"><div className="h-4 bg-[#222] rounded w-20"></div></td>
+                          <td className="px-4 py-4 text-right"><div className="h-4 bg-[#222] rounded w-16 ml-auto"></div></td>
+                          <td className="px-4 py-4 text-center"><div className="h-5 bg-[#222] rounded-full w-14 mx-auto"></div></td>
+                          <td className="px-4 py-4 text-center"><div className="h-4 bg-[#222] rounded w-16 mx-auto"></div></td>
+                        </tr>
+                      ))
                     ) : invoices.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="px-4 py-12 text-center">
