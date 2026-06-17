@@ -45,6 +45,7 @@ export default function SellerForm({ sellerData = {}, onChange, errors = {} }) {
       }
     };
     autoLoadSeller();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Live GSTIN detection
