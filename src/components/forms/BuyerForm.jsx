@@ -7,6 +7,7 @@ import {
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
+import Skeleton from '@/components/ui/Skeleton';
 import { validateGSTIN, validatePAN } from '@/utils/validators';
 import { INDIAN_STATES } from '@/constants/indianStates';
 
@@ -255,9 +256,28 @@ export default function BuyerForm({
               
               <div className="max-h-48 overflow-y-auto flex flex-col gap-1 pr-1 custom-scrollbar">
                 {loadingClients ? (
-                  <div className="flex items-center justify-center py-6 text-[#555]">
-                    <Loader2 size={16} className="animate-spin mr-1.5" />
-                    <span className="text-[11px]">Loading clients...</span>
+                  <div className="flex flex-col gap-2 py-1">
+                    <div className="p-1.5 border-b border-[#2a2a2a]/20 last:border-0 flex flex-col gap-1.5">
+                      <Skeleton className="h-3.5 w-28" />
+                      <div className="flex justify-between items-center mt-1">
+                        <Skeleton className="h-2 w-20" />
+                        <Skeleton className="h-3 w-8" />
+                      </div>
+                    </div>
+                    <div className="p-1.5 border-b border-[#2a2a2a]/20 last:border-0 flex flex-col gap-1.5">
+                      <Skeleton className="h-3.5 w-36" />
+                      <div className="flex justify-between items-center mt-1">
+                        <Skeleton className="h-2 w-16" />
+                        <Skeleton className="h-3 w-6" />
+                      </div>
+                    </div>
+                    <div className="p-1.5 border-b border-[#2a2a2a]/20 last:border-0 flex flex-col gap-1.5">
+                      <Skeleton className="h-3.5 w-24" />
+                      <div className="flex justify-between items-center mt-1">
+                        <Skeleton className="h-2 w-24" />
+                        <Skeleton className="h-3 w-10" />
+                      </div>
+                    </div>
                   </div>
                 ) : clients.length === 0 ? (
                   <div className="text-center py-6 text-[11px] text-[#555]">
