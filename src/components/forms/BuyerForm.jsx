@@ -22,9 +22,9 @@ export default function BuyerForm({
   const [searchTerm, setSearchTerm] = useState('');
   const [loadingClients, setLoadingClients] = useState(false);
   
-  // Local state for tax override
-  const [override, setOverride] = useState(buyerData.taxModeOverride || false);
-  const [manualTaxMode, setManualTaxMode] = useState(buyerData.taxMode || 'intrastate');
+  // Local references to props
+  const override = !!buyerData.taxModeOverride;
+  const manualTaxMode = buyerData.taxMode || 'intrastate';
 
   const popoverRef = useRef(null);
 
@@ -127,43 +127,38 @@ export default function BuyerForm({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Sync state and override selections
+  // Auto-detect tax mode when states change, unless override is enabled
   useEffect(() => {
-    let mode = 'intrastate';
-    if (override) {
-      mode = manualTaxMode;
-    } else if (sellerState && buyerData.state) {
+    if (buyerData.taxModeOverride) return;
+    
+    let detectedMode = 'intrastate';
+    if (sellerState && buyerData.state) {
       const isSame = sellerState.trim().toLowerCase() === buyerData.state.trim().toLowerCase();
-      mode = isSame ? 'intrastate' : 'interstate';
-    } else {
-      mode = 'intrastate';
+      detectedMode = isSame ? 'intrastate' : 'interstate';
     }
-
-    if (buyerData.taxMode !== mode) {
-      onChange('taxMode', mode);
+    
+    if (buyerData.taxMode !== detectedMode) {
+      onChange('taxMode', detectedMode);
     }
-    if (buyerData.taxModeOverride !== override) {
-      onChange('taxModeOverride', override);
-    }
-  }, [sellerState, buyerData.state, override, manualTaxMode, buyerData.taxMode, buyerData.taxModeOverride, onChange]);
-
-  // Read value updates from props
-  useEffect(() => {
-    if (buyerData.taxModeOverride !== undefined && buyerData.taxModeOverride !== override) {
-      setOverride(buyerData.taxModeOverride);
-    }
-    if (buyerData.taxMode !== undefined && buyerData.taxMode !== manualTaxMode) {
-      setManualTaxMode(buyerData.taxMode);
-    }
-  }, [buyerData.taxModeOverride, buyerData.taxMode, override, manualTaxMode]);
+  }, [sellerState, buyerData.state, buyerData.taxModeOverride, buyerData.taxMode, onChange]);
 
   const handleToggleOverride = () => {
     const nextOverride = !override;
-    setOverride(nextOverride);
+    onChange('taxModeOverride', nextOverride);
+    
+    if (!nextOverride) {
+      // If we are disabling override, immediately trigger auto-detection
+      let detectedMode = 'intrastate';
+      if (sellerState && buyerData.state) {
+        const isSame = sellerState.trim().toLowerCase() === buyerData.state.trim().toLowerCase();
+        detectedMode = isSame ? 'intrastate' : 'interstate';
+      }
+      onChange('taxMode', detectedMode);
+    }
   };
 
   const handleManualModeChange = (mode) => {
-    setManualTaxMode(mode);
+    onChange('taxMode', mode);
   };
 
   // Determine current active banner details
