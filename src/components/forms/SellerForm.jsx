@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { 
   Building2, Database, Save, Camera, X, CheckCircle2, XCircle 
 } from 'lucide-react';
@@ -15,6 +15,37 @@ export default function SellerForm({ sellerData = {}, onChange, errors = {} }) {
   const [loading, setLoading] = useState(false);
   const [loadingSaved, setLoadingSaved] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Auto-load Seller details on mount if businessName is not yet set
+  useEffect(() => {
+    const autoLoadSeller = async () => {
+      try {
+        const res = await fetch('/api/seller');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && !sellerData.businessName) {
+            onChange('businessName', data.business_name || '');
+            onChange('ownerName', data.owner_name || '');
+            onChange('address', data.address || '');
+            onChange('city', data.city || '');
+            onChange('state', data.state || '');
+            onChange('stateCode', data.state_code || '');
+            onChange('pinCode', data.pin_code || '');
+            onChange('gstin', data.gstin || '');
+            onChange('pan', data.pan || '');
+            onChange('email', data.email || '');
+            onChange('phone', data.phone || '');
+            onChange('website', data.website || '');
+            onChange('logoUrl', data.logo_url || null);
+            toast.success('Business details loaded');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to auto-load seller details:', err);
+      }
+    };
+    autoLoadSeller();
+  }, []);
 
   // Live GSTIN detection
   const gstinResult = sellerData.gstin ? validateGSTIN(sellerData.gstin) : null;

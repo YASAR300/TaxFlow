@@ -352,6 +352,79 @@ export default function useInvoiceBuilder() {
     }
   };
 
+  // 12.5 Load invoice from database (maps snake_case to camelCase)
+  const handleLoadInvoice = (invoice) => {
+    if (!invoice) return;
+
+    // Helper to map snake_case to camelCase
+    const mapToCamelCase = (obj) => {
+      if (!obj) return {};
+      const mapped = {};
+      Object.keys(obj).forEach((key) => {
+        const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+        mapped[camelKey] = obj[key];
+      });
+      return mapped;
+    };
+
+    try {
+      const sellerData = invoice.seller_data || invoice.sellerData || {};
+      const buyerData = invoice.buyer_data || invoice.buyerData || {};
+      const lineItemsData = invoice.line_items || invoice.lineItems || [];
+      const chargesData = invoice.additional_charges || invoice.additionalCharges || {};
+      const bankData = invoice.bank_details || invoice.bankDetails || {};
+      const customizationData = invoice.customization || {};
+
+      setSellerInfo(mapToCamelCase(sellerData));
+      setBuyerInfo(mapToCamelCase(buyerData));
+      
+      setInvoiceMeta({
+        invoiceNumber: invoice.invoice_number || invoice.invoiceNumber || '',
+        invoiceType: invoice.invoice_type || invoice.invoiceType || 'Tax Invoice',
+        invoiceDate: invoice.invoice_date || invoice.invoiceDate || '',
+        dueDate: invoice.due_date || invoice.dueDate || '',
+        financialYear: invoice.financial_year || invoice.financialYear || '',
+        placeOfSupply: invoice.place_of_supply || invoice.placeOfSupply || '',
+        paymentTerms: invoice.payment_terms || invoice.paymentTerms || '',
+        status: invoice.status || 'draft',
+        notes: invoice.notes || '',
+        terms: invoice.terms || '',
+      });
+
+      const mappedItems = lineItemsData.map((item) => ({
+        ...mapToCamelCase(item),
+        id: item.id || uuidv4(),
+        hsnCode: item.hsnCode || item.hsn_code || '',
+        discountPercent: item.discountPercent !== undefined ? item.discountPercent : (item.discount_percent || 0),
+        gstRate: item.gstRate !== undefined ? item.gstRate : (item.gst_rate || 0),
+        isDescriptionOnly: !!item.isDescriptionOnly || !!item.is_description_only,
+      }));
+      setLineItems(mappedItems);
+
+      setAdditionalCharges({
+        ...DEFAULT_ADDITIONAL_CHARGES,
+        ...chargesData
+      });
+
+      setBankDetails({
+        ...DEFAULT_BANK_DETAILS,
+        ...bankData
+      });
+
+      setCustomization({
+        ...DEFAULT_CUSTOMIZATION,
+        ...customizationData
+      });
+
+      setErrors({});
+      setIsDirty(false);
+      toast.success('Invoice loaded for editing');
+    } catch (err) {
+      console.error('Failed to load invoice:', err);
+      toast.error('Error loading invoice');
+    }
+  };
+
   // 13. Duplicate current invoice config
   const handleDuplicateInvoice = async () => {
     try {
@@ -413,6 +486,7 @@ export default function useInvoiceBuilder() {
     handleDownloadPDF,
     handleNewInvoice,
     handleLoadDraft,
+    handleLoadInvoice,
     handleDuplicateInvoice,
     handleDismissDraft,
   };
