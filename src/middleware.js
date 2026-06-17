@@ -55,9 +55,12 @@ export async function middleware(request) {
 
   // ── Routing logic ──────────────────────────────────────────────────────────
 
-  // 1. Logged-in user visits landing page (/) → send to dashboard
-  if (user && pathname === '/') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  // 1. Redirect /signup to /dashboard if logged in, or /login?mode=signup if not
+  if (pathname === '/signup') {
+    if (user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    return NextResponse.redirect(new URL('/login?mode=signup', request.url));
   }
 
   // 2. Logged-in user visits /login or /signup → send to dashboard

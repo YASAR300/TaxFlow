@@ -16,12 +16,22 @@ function LoginContent() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
+  
+  // Determine mode from query parameters: /login?mode=signup
+  const modeParam = searchParams.get('mode');
+  const [mode, setMode] = useState(modeParam === 'signup' ? 'signup' : 'signin');
   const [signupDone, setSignupDone] = useState(false);
 
   useEffect(() => {
     const errorMsg = searchParams.get('error');
     if (errorMsg) toast.error(decodeURIComponent(errorMsg));
+
+    const currentMode = searchParams.get('mode');
+    if (currentMode === 'signup') {
+      setMode('signup');
+    } else if (currentMode === 'signin') {
+      setMode('signin');
+    }
   }, [searchParams]);
 
   const handleEmailAuth = async (e) => {

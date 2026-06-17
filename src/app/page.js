@@ -302,7 +302,7 @@ export default function LandingPage() {
             ) : (
               <>
                 <Link href="/login" className="text-[#8a8b98] hover:text-white transition-colors py-1">Log in</Link>
-                <Link href="/signup" className="bg-white hover:bg-white/90 text-black px-3.5 py-1.5 rounded-full font-medium transition-all shadow-[0_4px_12px_rgba(255,255,255,0.1)]">
+                <Link href="/login?mode=signup" className="bg-white hover:bg-white/90 text-black px-3.5 py-1.5 rounded-full font-medium transition-all shadow-[0_4px_12px_rgba(255,255,255,0.1)]">
                   Sign up free
                 </Link>
               </>
@@ -328,7 +328,7 @@ export default function LandingPage() {
             ) : (
               <>
                 <Link href="/login" className="text-lg text-[#8a8b98] hover:text-white" onClick={() => setMenuOpen(false)}>Log in</Link>
-                <Link href="/signup" className="text-center py-2.5 bg-white text-black rounded-full font-semibold" onClick={() => setMenuOpen(false)}>Sign up free</Link>
+                <Link href="/login?mode=signup" className="text-center py-2.5 bg-white text-black rounded-full font-semibold" onClick={() => setMenuOpen(false)}>Sign up free</Link>
               </>
             )}
           </div>
@@ -364,7 +364,7 @@ export default function LandingPage() {
               </Link>
             ) : (
               <>
-                <Link href="/signup" className="group bg-white hover:bg-white/90 text-black px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.15)]">
+                <Link href="/login?mode=signup" className="group bg-white hover:bg-white/90 text-black px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.15)]">
                   Get started free
                   <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                 </Link>
@@ -879,7 +879,7 @@ export default function LandingPage() {
               </Link>
             ) : (
               <>
-                <Link href="/signup" className="group bg-white hover:bg-white/90 text-black px-8 py-3 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.2)]">
+                <Link href="/login?mode=signup" className="group bg-white hover:bg-white/90 text-black px-8 py-3 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.2)]">
                   Sign up free
                   <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                 </Link>
