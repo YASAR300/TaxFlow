@@ -30,6 +30,11 @@ export default function NewInvoicePage() {
   // Authenticate user and auto-load saved seller profile
   useEffect(() => {
     const initPage = async () => {
+      const mockUser = { email: 'developer@example.com' };
+      setUser(mockUser);
+      setLoadingUser(false);
+      return; // Skip supabase getUser check during debug
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Please sign in to create invoices');

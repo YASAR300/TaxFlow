@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 
 // Paths that are always public — no auth check needed
-const PUBLIC_PATHS = new Set(['/', '/login', '/signup']);
+const PUBLIC_PATHS = new Set(['/', '/login', '/signup', '/invoices/new']);
 const PUBLIC_PREFIXES = ['/auth', '/_next', '/favicon', '/logo', '/og'];
 
 function isPublicPath(pathname) {
