@@ -94,7 +94,7 @@ export default async function Dashboard() {
             <span>/</span>
             <span className="text-[#999]">Dashboard</span>
           </div>
-          <a href="/?new=true" className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#5e6ad2] hover:bg-[#4f5abf] text-white text-[12px] font-medium transition-colors">
+          <a href="/invoices/new" className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#5e6ad2] hover:bg-[#4f5abf] text-white text-[12px] font-medium transition-colors">
             <Plus size={13} strokeWidth={2.5} />
             New Invoice
           </a>
@@ -125,7 +125,7 @@ export default async function Dashboard() {
                   recentInvoices.map((inv) => (
                     <ActivityItem 
                       key={inv.id}
-                      href={`/?id=${inv.id}`}
+                      href={`/invoices/new?id=${inv.id}`}
                       icon={<FileText size={13} className="text-[#5e6ad2]" />}
                       title={`Invoice ${inv.invoice_number}`}
                       desc={`Billed ₹${inv.grand_total.toLocaleString('en-IN')} to ${inv.client_name}`}
@@ -135,7 +135,7 @@ export default async function Dashboard() {
                   ))
                 ) : (
                   <>
-                    <ActivityItem href="/" icon={<FileText size={13} className="text-[#5e6ad2]" />} title="Welcome to TaxFlow GST" desc="Start by creating your first GST invoice" time="just now" status="draft" />
+                    <ActivityItem href="/invoices/new" icon={<FileText size={13} className="text-[#5e6ad2]" />} title="Welcome to TaxFlow GST" desc="Start by creating your first GST invoice" time="just now" status="draft" />
                     <ActivityItem href="/clients" icon={<Users size={13} className="text-[#888]" />} title="Add your first client" desc="Go to Clients → Add client to get started" time="" />
                     <ActivityItem href="/seller" icon={<TrendingUp size={13} className="text-emerald-400" />} title="Configure your business details" desc="Set your GSTIN, business name, and address in Business settings" time="" />
                   </>
@@ -148,7 +148,7 @@ export default async function Dashboard() {
                     <Clock size={16} className="text-[#444]" />
                   </div>
                   <p className="text-[13px] text-[#555] mb-3">No invoices created yet</p>
-                  <a href="/?new=true" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#2a2a2a] hover:border-[#3a3a3a] text-[12px] text-[#888] hover:text-[#ccc] transition-all">
+                  <a href="/invoices/new" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#2a2a2a] hover:border-[#3a3a3a] text-[12px] text-[#888] hover:text-[#ccc] transition-all">
                     <Plus size={12} />
                     Create your first invoice
                   </a>

@@ -515,7 +515,7 @@ function SettingsContent() {
                           {recentInvoices.map((inv) => (
                             <div key={inv.id} className="grid grid-cols-4 px-3 py-2.5 hover:bg-[#202022] transition-colors items-center">
                               <span className="font-mono text-[#ccc]">
-                                <a href={`/?id=${inv.id}`} className="text-[#5e6ad2] hover:underline">
+                                <a href={`/invoices/new?id=${inv.id}`} className="text-[#5e6ad2] hover:underline">
                                   {inv.invoice_number}
                                 </a>
                               </span>

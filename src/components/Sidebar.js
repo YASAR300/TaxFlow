@@ -185,7 +185,7 @@ export default function Sidebar({ user }) {
     if (pathname === '/seller') return 'Seller Settings';
     if (pathname === '/settings') return 'Workspace Settings';
     if (pathname === '/analytics') return 'Revenue Analytics';
-    if (pathname === '/') {
+    if (pathname === '/invoices/new') {
       const invId = searchParams.get('id');
       if (invId) {
         const inputEl = document.querySelector('input[placeholder="e.g. INV-2526-001"]');
@@ -207,7 +207,7 @@ export default function Sidebar({ user }) {
       '/seller': 'bg-red-500/80',
       '/settings': 'bg-purple-500/80',
       '/analytics': 'bg-emerald-500/80',
-      '/': 'bg-violet-500/80',
+      '/invoices/new': 'bg-violet-500/80',
     };
     return colors[pathname] || 'bg-slate-500/80';
   };
@@ -348,7 +348,7 @@ export default function Sidebar({ user }) {
     { type: 'nav', label: 'Go to Business Setup', href: '/seller', icon: Building2 },
     { type: 'nav', label: 'Go to GSTR-1 Analytics', href: '/analytics', icon: BarChart3 },
     { type: 'nav', label: 'Go to Workspace Settings', href: '/settings', icon: Settings },
-    { type: 'nav', label: 'Create New GST Invoice', href: '/', icon: Plus },
+    { type: 'nav', label: 'Create New GST Invoice', href: '/invoices/new', icon: Plus },
   ];
 
   const filteredNavActions = query.trim() 
@@ -361,7 +361,7 @@ export default function Sidebar({ user }) {
       type: 'invoice',
       label: `Invoice ${inv.invoice_number}`,
       sub: `Billed to ${inv.buyer_data?.business_name || 'Client'} • ₹${(parseFloat(inv.grand_total) || 0).toLocaleString('en-IN')}`,
-      href: `/?id=${inv.id}`,
+      href: `/invoices/new?id=${inv.id}`,
       icon: FileCode
     })),
     ...clientResults.map(cli => ({
@@ -759,7 +759,7 @@ export default function Sidebar({ user }) {
                     const displayItem = {
                       label: `Invoice ${inv.invoice_number}`,
                       sub: `Billed to ${inv.buyer_data?.business_name || 'Client'} • ₹${(parseFloat(inv.grand_total) || 0).toLocaleString('en-IN')}`,
-                      href: `/?id=${inv.id}`
+                      href: `/invoices/new?id=${inv.id}`
                     };
 
                     return (

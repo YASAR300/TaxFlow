@@ -263,7 +263,7 @@ function InvoicesListContent() {
             <span>/</span>
             <span className="text-[#999]">Invoices</span>
           </div>
-          <a href="/?new=true" className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#5e6ad2] hover:bg-[#4f5abf] text-white text-[12px] font-medium transition-colors">
+          <a href="/invoices/new" className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#5e6ad2] hover:bg-[#4f5abf] text-white text-[12px] font-medium transition-colors">
             <Plus size={13} strokeWidth={2.5} />
             New Invoice
           </a>
@@ -378,7 +378,7 @@ function InvoicesListContent() {
                         <tr key={inv.id} className="text-[13px] hover:bg-[#141414] transition-colors group">
                           {/* Invoice Num */}
                           <td className="px-4 py-3.5 font-medium text-[#ccc] group-hover:text-[#e2e8f0]">
-                            <a href={`/?id=${inv.id}`} className="hover:underline flex items-center gap-1.5 font-mono text-blue-500">
+                            <a href={`/invoices/new?id=${inv.id}`} className="hover:underline flex items-center gap-1.5 font-mono text-blue-500">
                               {inv.invoice_number}
                               <ArrowUpRight size={11} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                             </a>
@@ -414,7 +414,7 @@ function InvoicesListContent() {
                             <div className="flex items-center justify-center gap-2">
                               {/* Edit */}
                               <button
-                                onClick={() => router.push(`/?id=${inv.id}`)}
+                                onClick={() => router.push(`/invoices/new?id=${inv.id}`)}
                                 className="p-1 rounded text-[#555] hover:text-[#ccc] hover:bg-[#222] transition-all"
                                 title="Edit Invoice"
                               >

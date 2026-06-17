@@ -49,7 +49,7 @@ function LoginContent() {
         } else {
           toast.success('Signed in successfully');
           localStorage.setItem('user_logged_in', 'true');
-          router.push('/');
+          router.push('/dashboard');
           router.refresh();
         }
       } else {
