@@ -18,6 +18,76 @@ import { printInvoice } from '@/utils/pdfGenerator';
 import Button from '@/components/ui/Button';
 import { MessageCircle, Download, Printer, Save, FilePlus, Copy, Eye } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Skeleton from '@/components/ui/Skeleton';
+
+function EditorSkeleton() {
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Header Info Skeleton */}
+      <div className="flex flex-col gap-2 pb-2 border-b border-[#1a1a1a]">
+        <div className="h-6 bg-[#1a1a1a] rounded w-48 animate-pulse"></div>
+        <div className="h-3.5 bg-[#1a1a1a] rounded w-80 animate-pulse"></div>
+      </div>
+
+      {/* Meta Form Card Skeleton */}
+      <div className="bg-[#111111] border border-[#2a2a2a] rounded-xl p-5 flex flex-col gap-4">
+        <div className="h-4 bg-[#1a1a1a] rounded w-32 animate-pulse"></div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex flex-col gap-1.5 animate-pulse">
+              <div className="h-3 bg-[#1a1a1a] rounded w-16"></div>
+              <div className="h-9 bg-[#1a1a1a] rounded w-full"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Seller/Buyer Forms Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[...Array(2)].map((_, i) => (
+          <div key={i} className="bg-[#111111] border border-[#2a2a2a] rounded-xl p-5 flex flex-col gap-4">
+            <div className="h-4 bg-[#1a1a1a] rounded w-36 animate-pulse"></div>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5 animate-pulse">
+                <div className="h-3 bg-[#1a1a1a] rounded w-24"></div>
+                <div className="h-9 bg-[#1a1a1a] rounded w-full"></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[...Array(4)].map((_, j) => (
+                  <div key={j} className="flex flex-col gap-1.5 animate-pulse">
+                    <div className="h-3 bg-[#1a1a1a] rounded w-16"></div>
+                    <div className="h-9 bg-[#1a1a1a] rounded w-full"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Table Skeleton */}
+      <div className="bg-[#111111] border border-[#2a2a2a] rounded-xl p-5 flex flex-col gap-4">
+        <div className="h-4 bg-[#1a1a1a] rounded w-28 animate-pulse"></div>
+        <div className="border border-[#1e1e1e] rounded-lg overflow-hidden animate-pulse">
+          <div className="h-8 bg-[#141414] border-b border-[#1e1e1e] flex items-center px-4 justify-between">
+            <div className="h-3 bg-[#1a1a1a] rounded w-32"></div>
+            <div className="h-3 bg-[#1a1a1a] rounded w-24"></div>
+          </div>
+          <div className="p-4 flex flex-col gap-3">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="grid grid-cols-12 gap-3 items-center">
+                <div className="col-span-6 h-8 bg-[#1a1a1a] rounded"></div>
+                <div className="col-span-2 h-8 bg-[#1a1a1a] rounded"></div>
+                <div className="col-span-2 h-8 bg-[#1a1a1a] rounded"></div>
+                <div className="col-span-2 h-8 bg-[#1a1a1a] rounded"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function InvoiceBuilderContent() {
   const mockUser = { email: 'developer@example.com' };
@@ -29,6 +99,8 @@ function InvoiceBuilderContent() {
   const [historyOpen, setHistoryOpen] = useState(false);
   // Preview mode toggle state
   const [showPreviewMode, setShowPreviewMode] = useState(false);
+  // Loading invoice state
+  const [loadingInvoice, setLoadingInvoice] = useState(() => !!id);
 
   // Load state and operations from our master state manager hook
   const {
@@ -67,6 +139,7 @@ function InvoiceBuilderContent() {
   useEffect(() => {
     if (id) {
       const fetchInvoice = async () => {
+        setLoadingInvoice(true);
         try {
           const res = await fetch(`/api/invoices/${id}`);
           if (res.ok) {
@@ -78,9 +151,13 @@ function InvoiceBuilderContent() {
         } catch (err) {
           console.error(err);
           toast.error('Error loading invoice');
+        } finally {
+          setLoadingInvoice(false);
         }
       };
       fetchInvoice();
+    } else {
+      setLoadingInvoice(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -258,71 +335,77 @@ function InvoiceBuilderContent() {
             <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0a0a0a]">
               <div className="max-w-[850px] mx-auto px-6 py-8 flex flex-col gap-6">
                 
-                {/* Form title */}
-                <div className="flex justify-between items-center pb-2 border-b border-[#1a1a1a]">
-                  <div>
-                    <h1 className="text-lg font-bold text-[#e2e8f0] tracking-tight">GST Invoice Generator</h1>
-                    <p className="text-xs text-[#666] mt-0.5">
-                      Configure details, items, bank options, and customizations.
-                    </p>
-                  </div>
-                  
-                  {/* Duplicate Invoice Button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleDuplicateInvoice}
-                    icon={Copy}
-                    className="text-[#666] hover:text-[#ccc]"
-                  >
-                    Duplicate
-                  </Button>
-                </div>
+                {loadingInvoice ? (
+                  <EditorSkeleton />
+                ) : (
+                  <>
+                    {/* Form title */}
+                    <div className="flex justify-between items-center pb-2 border-b border-[#1a1a1a]">
+                      <div>
+                        <h1 className="text-lg font-bold text-[#e2e8f0] tracking-tight">GST Invoice Generator</h1>
+                        <p className="text-xs text-[#666] mt-0.5">
+                          Configure details, items, bank options, and customizations.
+                        </p>
+                      </div>
+                      
+                      {/* Duplicate Invoice Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleDuplicateInvoice}
+                        icon={Copy}
+                        className="text-[#666] hover:text-[#ccc]"
+                      >
+                        Duplicate
+                      </Button>
+                    </div>
 
-                {/* Stacked Cards */}
-                <InvoiceMetaForm
-                  metaData={invoiceMeta}
-                  onChange={handleMetaChange}
-                  errors={errors}
-                />
+                    {/* Stacked Cards */}
+                    <InvoiceMetaForm
+                      metaData={invoiceMeta}
+                      onChange={handleMetaChange}
+                      errors={errors}
+                    />
 
-                <SellerForm
-                  sellerData={sellerInfo}
-                  onChange={handleSellerChange}
-                  errors={errors}
-                />
+                    <SellerForm
+                      sellerData={sellerInfo}
+                      onChange={handleSellerChange}
+                      errors={errors}
+                    />
 
-                <BuyerForm
-                  buyerData={buyerInfo}
-                  sellerState={sellerInfo.state}
-                  onChange={handleBuyerChange}
-                  errors={errors}
-                />
+                    <BuyerForm
+                      buyerData={buyerInfo}
+                      sellerState={sellerInfo.state}
+                      onChange={handleBuyerChange}
+                      errors={errors}
+                    />
 
-                <LineItemsTable
-                  items={lineItems}
-                  taxMode={taxMode}
-                  onChange={handleLineItemsChange}
-                  errors={errors}
-                />
+                    <LineItemsTable
+                      items={lineItems}
+                      taxMode={taxMode}
+                      onChange={handleLineItemsChange}
+                      errors={errors}
+                    />
 
-                <AdditionalCharges
-                  charges={additionalCharges}
-                  onChange={handleAdditionalChargesChange}
-                  totals={totals}
-                />
+                    <AdditionalCharges
+                      charges={additionalCharges}
+                      onChange={handleAdditionalChargesChange}
+                      totals={totals}
+                    />
 
-                <BankDetails
-                  bankData={bankDetails}
-                  onChange={handleBankDetailsChange}
-                  errors={errors}
-                  totals={totals}
-                />
+                    <BankDetails
+                      bankData={bankDetails}
+                      onChange={handleBankDetailsChange}
+                      errors={errors}
+                      totals={totals}
+                    />
 
-                <CustomizationPanel
-                  customization={customization}
-                  onChange={handleCustomizationChange}
-                />
+                    <CustomizationPanel
+                      customization={customization}
+                      onChange={handleCustomizationChange}
+                    />
+                  </>
+                )}
 
               </div>
             </div>

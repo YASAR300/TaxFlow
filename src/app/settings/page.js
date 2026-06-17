@@ -45,45 +45,55 @@ function SettingsContent() {
 
   // Load defaults and user data from local storage/Supabase if present
   useEffect(() => {
-    const terms = localStorage.getItem('pref_default_terms');
-    const hsn = localStorage.getItem('pref_show_hsn');
-    const discount = localStorage.getItem('pref_show_discount');
-    const signature = localStorage.getItem('pref_show_signature');
-
-    if (terms) setDefaultTerms(terms);
-    if (hsn !== null) setShowHsn(hsn === 'true');
-    if (discount !== null) setShowDiscount(discount === 'true');
-    if (signature !== null) setShowSignature(signature === 'true');
-    setLoading(false);
-
-    const fetchUserData = async () => {
+    const loadSettings = async () => {
+      setLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setCurrentUser(session.user);
-          setUsername(session.user.user_metadata?.full_name || session.user.user_metadata?.name || '');
-          setAvatarUrl(session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || '');
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchUserData();
+        const terms = localStorage.getItem('pref_default_terms');
+        const hsn = localStorage.getItem('pref_show_hsn');
+        const discount = localStorage.getItem('pref_show_discount');
+        const signature = localStorage.getItem('pref_show_signature');
 
-    const fetchRecentHistory = async () => {
-      try {
-        const res = await fetch('/api/invoices?limit=5');
-        if (res.ok) {
-          const data = await res.json();
-          setRecentInvoices(data.invoices || []);
-        }
+        if (terms) setDefaultTerms(terms);
+        if (hsn !== null) setShowHsn(hsn === 'true');
+        if (discount !== null) setShowDiscount(discount === 'true');
+        if (signature !== null) setShowSignature(signature === 'true');
+
+        // Parallelize database/session fetching
+        await Promise.all([
+          (async () => {
+            try {
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session?.user) {
+                setCurrentUser(session.user);
+                setUsername(session.user.user_metadata?.full_name || session.user.user_metadata?.name || '');
+                setAvatarUrl(session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || '');
+              }
+            } catch (err) {
+              console.error('Failed to load user profile session:', err);
+            }
+          })(),
+          (async () => {
+            try {
+              const res = await fetch('/api/invoices?limit=5');
+              if (res.ok) {
+                const data = await res.json();
+                setRecentInvoices(data.invoices || []);
+              }
+            } catch (err) {
+              console.error('Failed to fetch activity history:', err);
+            } finally {
+              setHistoryLoading(false);
+            }
+          })()
+        ]);
       } catch (err) {
-        console.error('Failed to fetch activity history:', err);
+        console.error('Error loading settings:', err);
       } finally {
-        setHistoryLoading(false);
+        setLoading(false);
       }
     };
-    fetchRecentHistory();
+
+    loadSettings();
   }, [supabase]);
 
   const handleSavePreferences = (e) => {

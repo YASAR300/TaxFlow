@@ -23,22 +23,33 @@ const workspaceItems = [
   { label: 'Settings', icon: Settings, href: '/settings' },
 ];
 
-function NavItem({ item, active }) {
+function NavItem({ item, active, navigatingTo, onNavigate }) {
   const router = useRouter();
+  const isNavigating = navigatingTo === item.href;
   return (
     <button
-      onClick={() => router.push(item.href)}
+      onClick={() => {
+        if (!active && !isNavigating) {
+          onNavigate(item.href);
+          router.push(item.href);
+        }
+      }}
+      disabled={isNavigating}
       className={`w-full flex items-center gap-2.5 px-2.5 py-[5px] rounded-md text-[13px] transition-all duration-100 group ${
         active
           ? 'bg-[#252525] text-[#e2e8f0]'
           : 'text-[#888] hover:bg-[#1e1e1e] hover:text-[#ccc]'
-      }`}
+      } ${isNavigating ? 'opacity-70 cursor-wait' : ''}`}
     >
-      <item.icon
-        size={14}
-        className={active ? 'text-[#5e6ad2]' : 'text-[#555] group-hover:text-[#888]'}
-        strokeWidth={2}
-      />
+      {isNavigating ? (
+        <Loader2 size={14} className="animate-spin text-[#5e6ad2] shrink-0" />
+      ) : (
+        <item.icon
+          size={14}
+          className={active ? 'text-[#5e6ad2]' : 'text-[#555] group-hover:text-[#888]'}
+          strokeWidth={2}
+        />
+      )}
       <span className="truncate">{item.label}</span>
     </button>
   );
@@ -88,8 +99,12 @@ export default function Sidebar({ user }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const searchInputRef = useRef(null);
 
+  // Navigation transition state
+  const [navigatingTo, setNavigatingTo] = useState(null);
+
   // Authenticated user state
   const [currentUser, setCurrentUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -100,6 +115,8 @@ export default function Sidebar({ user }) {
         }
       } catch (err) {
         console.error('Failed to get session user:', err);
+      } finally {
+        setLoadingUser(false);
       }
     };
     fetchUser();
@@ -110,6 +127,7 @@ export default function Sidebar({ user }) {
       } else {
         setCurrentUser(null);
       }
+      setLoadingUser(false);
     });
 
     return () => subscription.unsubscribe();
@@ -414,6 +432,8 @@ export default function Sidebar({ user }) {
             key={item.href}
             item={item}
             active={pathname === item.href}
+            navigatingTo={navigatingTo}
+            onNavigate={setNavigatingTo}
           />
         ))}
       </nav>
@@ -431,6 +451,8 @@ export default function Sidebar({ user }) {
             key={item.href}
             item={item}
             active={pathname === item.href}
+            navigatingTo={navigatingTo}
+            onNavigate={setNavigatingTo}
           />
         ))}
       </div>
@@ -578,14 +600,26 @@ export default function Sidebar({ user }) {
               );
             }
 
+            const isNavigatingFav = navigatingTo === fav.href;
             return (
               <div 
                 key={fav.href}
-                onClick={() => router.push(fav.href)}
-                className="w-full flex items-center justify-between px-2.5 py-[5px] rounded-md text-[13px] text-[#888] hover:text-[#ccc] hover:bg-[#1e1e1e] transition-all cursor-pointer group/fav"
+                onClick={() => {
+                  if (!isNavigatingFav) {
+                    setNavigatingTo(fav.href);
+                    router.push(fav.href);
+                  }
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-[5px] rounded-md text-[13px] text-[#888] hover:text-[#ccc] hover:bg-[#1e1e1e] transition-all cursor-pointer group/fav ${
+                  isNavigatingFav ? 'opacity-70 cursor-wait' : ''
+                }`}
               >
                 <div className="flex items-center gap-2.5 truncate">
-                  <span className={`w-2 h-2 rounded-full ${fav.color} shrink-0`} />
+                  {isNavigatingFav ? (
+                    <Loader2 size={12} className="animate-spin text-[#5e6ad2] shrink-0" />
+                  ) : (
+                    <span className={`w-2 h-2 rounded-full ${fav.color} shrink-0`} />
+                  )}
                   <span className="truncate">{fav.label}</span>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover/fav:opacity-100 transition-opacity shrink-0">
@@ -615,32 +649,49 @@ export default function Sidebar({ user }) {
 
       {/* User footer */}
       <div className="border-t border-[#2a2a2a] px-2 py-2 shrink-0">
-        <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-[#1e1e1e] transition-colors cursor-pointer group">
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt="Profile" className="w-6 h-6 rounded-full object-cover shrink-0" />
-          ) : (
-            <div className="w-6 h-6 rounded-full bg-[#5e6ad2] flex items-center justify-center shrink-0 text-[11px] font-bold text-white uppercase">
-              {userInitial}
+        {loadingUser ? (
+          <div className="flex items-center gap-2.5 px-2 py-1.5 animate-pulse">
+            <div className="w-6 h-6 rounded-full bg-[#202020] shrink-0" />
+            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+              <div className="h-2.5 bg-[#202020] rounded w-16" />
+              <div className="h-2 bg-[#202020] rounded w-24" />
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-[12px] text-[#ccc] truncate leading-tight font-medium">
-              {displayName}
-            </p>
-            <p className="text-[10px] text-[#555] truncate leading-tight mt-0.5">
-              {emailToShow}
-            </p>
           </div>
+        ) : currentUser ? (
+          <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-[#1e1e1e] transition-colors cursor-pointer group">
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarUrl} alt="Profile" className="w-6 h-6 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-[#5e6ad2] flex items-center justify-center shrink-0 text-[11px] font-bold text-white uppercase">
+                {userInitial}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] text-[#ccc] truncate leading-tight font-medium">
+                {displayName}
+              </p>
+              <p className="text-[10px] text-[#555] truncate leading-tight mt-0.5">
+                {emailToShow}
+              </p>
+            </div>
+            <button
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-[#555] hover:text-[#e2e8f0] ml-auto"
+              title="Sign out"
+            >
+              <LogOut size={13} />
+            </button>
+          </div>
+        ) : (
           <button
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-[#555] hover:text-[#e2e8f0] ml-auto"
-            title="Sign out"
+            onClick={() => router.push('/login')}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md bg-[#5e6ad2] hover:bg-[#4f5abf] text-white text-[12px] font-semibold transition-all shadow-md active:scale-[0.98]"
           >
-            <LogOut size={13} />
+            Sign In to Save
           </button>
-        </div>
+        )}
       </div>
 
       {/* ============================================================ */}
