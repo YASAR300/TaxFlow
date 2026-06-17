@@ -36,7 +36,7 @@ export default async function AnalyticsPage() {
     topItemsRes,
     topClientsRes
   ] = await Promise.all([
-    // Total Revenue & Tax
+    // Total Sales & Tax (All active invoices)
     sql`
       SELECT 
         COALESCE(SUM(grand_total), 0)::float AS total_sales,
@@ -46,18 +46,20 @@ export default async function AnalyticsPage() {
         COALESCE(SUM(total_sgst), 0)::float AS sgst,
         COALESCE(SUM(total_igst), 0)::float AS igst
       FROM invoices
-      WHERE status = 'paid'
+      WHERE status != 'cancelled'
     `,
-    // GST Tax Slab Breakdown (from invoice items)
+    // GST Tax Slab Breakdown (Filtered to non-cancelled invoices)
     sql`
       SELECT 
-        gst_rate::float AS slab,
-        COUNT(*)::integer AS item_count,
-        COALESCE(SUM(taxable_amount), 0)::float AS taxable_amount,
-        COALESCE(SUM(cgst_amount + sgst_amount + igst_amount), 0)::float AS tax_amount
-      FROM invoice_items
-      GROUP BY gst_rate
-      ORDER BY gst_rate ASC
+        ii.gst_rate::float AS slab,
+        COUNT(ii.id)::integer AS item_count,
+        COALESCE(SUM(ii.taxable_amount), 0)::float AS taxable_amount,
+        COALESCE(SUM(ii.cgst_amount + ii.sgst_amount + ii.igst_amount), 0)::float AS tax_amount
+      FROM invoice_items ii
+      JOIN invoices i ON ii.invoice_id = i.id
+      WHERE i.status != 'cancelled'
+      GROUP BY ii.gst_rate
+      ORDER BY ii.gst_rate ASC
     `,
     // Monthly Sales & Tax Trends (6-Month list)
     sql`
@@ -72,25 +74,32 @@ export default async function AnalyticsPage() {
       ORDER BY month_date ASC
       LIMIT 6
     `,
-    // Top Selling products / services
+    // Top Selling products / services (Filtered to non-cancelled invoices)
     sql`
       SELECT 
-        description,
-        COUNT(*)::integer AS sales_count,
-        COALESCE(SUM(quantity), 0)::float AS total_qty,
-        COALESCE(SUM(taxable_amount), 0)::float AS revenue
-      FROM invoice_items
-      GROUP BY description
+        ii.description,
+        COUNT(ii.id)::integer AS sales_count,
+        COALESCE(SUM(ii.quantity), 0)::float AS total_qty,
+        COALESCE(SUM(ii.taxable_amount), 0)::float AS revenue
+      FROM invoice_items ii
+      JOIN invoices i ON ii.invoice_id = i.id
+      WHERE i.status != 'cancelled'
+      GROUP BY ii.description
       ORDER BY revenue DESC
       LIMIT 5
     `,
-    // Top invoiced Clients
+    // Top invoiced Clients (Computed dynamically to ensure real-time accuracy)
     sql`
       SELECT 
-        business_name,
-        invoice_count,
-        total_invoiced::float AS total_invoiced
-      FROM clients
+        c.business_name,
+        COALESCE(COUNT(CASE WHEN i.status != 'cancelled' THEN 1 END), 0)::integer AS invoice_count,
+        COALESCE(SUM(CASE WHEN i.status != 'cancelled' THEN i.grand_total ELSE 0 END), 0)::float AS total_invoiced
+      FROM clients c
+      LEFT JOIN invoices i ON 
+        (c.gstin IS NOT NULL AND c.gstin = i.buyer_data->>'gstin') 
+        OR (c.email IS NOT NULL AND c.email = i.buyer_data->>'email') 
+        OR (c.business_name = i.buyer_data->>'business_name')
+      GROUP BY c.id, c.business_name
       ORDER BY total_invoiced DESC
       LIMIT 5
     `
@@ -131,11 +140,11 @@ export default async function AnalyticsPage() {
             {/* Top Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6">
               <StatCard 
-                label="Total Realized Sales" 
+                label="Total Sales" 
                 value={`₹${summary.total_sales.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
-                sub="Paid invoices revenue"
+                sub="All active invoices sales"
                 icon={IndianRupee}
-                color="text-emerald-400"
+                color="text-[#5e6ad2]"
               />
               <StatCard 
                 label="Taxable Amount" 

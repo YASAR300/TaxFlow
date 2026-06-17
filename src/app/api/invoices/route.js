@@ -18,33 +18,13 @@ export async function GET(req) {
     const from = searchParams.get('from');
     const to = searchParams.get('to');
 
-    const conditions = [];
-    const params = [];
+    const statusVal = status || null;
+    const searchPattern = search ? `%${search}%` : null;
+    const fromVal = from || null;
+    const toVal = to || null;
 
-    if (status) {
-      params.push(status);
-      conditions.push(`status = $${params.length}`);
-    }
-
-    if (search) {
-      params.push(`%${search}%`);
-      conditions.push(`(invoice_number ILIKE $${params.length} OR buyer_data->>'business_name' ILIKE $${params.length})`);
-    }
-
-    if (from) {
-      params.push(from);
-      conditions.push(`invoice_date >= $${params.length}`);
-    }
-
-    if (to) {
-      params.push(to);
-      conditions.push(`invoice_date <= $${params.length}`);
-    }
-
-    const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
-
-    // Summary statistics
-    const summaryQuery = `
+    // Summary statistics using tagged template literals (Neon safe)
+    const summaryResult = await sql`
       SELECT 
         COUNT(*)::integer as total,
         COALESCE(SUM(grand_total), 0)::float as total_amount,
@@ -52,10 +32,13 @@ export async function GET(req) {
         COUNT(CASE WHEN status = 'draft' THEN 1 END)::integer as draft_count,
         COUNT(CASE WHEN status = 'overdue' THEN 1 END)::integer as overdue_count
       FROM invoices
-      ${whereClause}
+      WHERE 
+        (${statusVal}::text IS NULL OR status = ${statusVal})
+        AND (${searchPattern}::text IS NULL OR invoice_number ILIKE ${searchPattern} OR buyer_data->>'business_name' ILIKE ${searchPattern})
+        AND (${fromVal}::text IS NULL OR invoice_date >= ${fromVal}::date)
+        AND (${toVal}::text IS NULL OR invoice_date <= ${toVal}::date)
     `;
-
-    const summaryResult = await sql(summaryQuery, params);
+    
     const summaryRow = summaryResult[0] || { total: 0, total_amount: 0, paid_count: 0, draft_count: 0, overdue_count: 0 };
 
     const total = summaryRow.total;
@@ -64,14 +47,17 @@ export async function GET(req) {
     const totalPages = Math.ceil(total / limitNum) || 1;
     const offset = (pageNum - 1) * limitNum;
 
-    // Fetch invoices
-    const invoicesQuery = `
+    // Fetch invoices using tagged template literals (Neon safe)
+    const invoices = await sql`
       SELECT * FROM invoices
-      ${whereClause}
+      WHERE 
+        (${statusVal}::text IS NULL OR status = ${statusVal})
+        AND (${searchPattern}::text IS NULL OR invoice_number ILIKE ${searchPattern} OR buyer_data->>'business_name' ILIKE ${searchPattern})
+        AND (${fromVal}::text IS NULL OR invoice_date >= ${fromVal}::date)
+        AND (${toVal}::text IS NULL OR invoice_date <= ${toVal}::date)
       ORDER BY invoice_date DESC, created_at DESC
       LIMIT ${limitNum} OFFSET ${offset}
     `;
-    const invoices = await sql(invoicesQuery, params);
 
     return getCorsResponse({
       invoices,

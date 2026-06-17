@@ -14,16 +14,34 @@ export async function GET(req) {
     if (search) {
       const term = `%${search}%`;
       clients = await sql`
-        SELECT * FROM clients
-        WHERE business_name ILIKE ${term}
-           OR gstin ILIKE ${term}
-           OR email ILIKE ${term}
-        ORDER BY business_name ASC
+        SELECT 
+          c.id, c.business_name, c.contact_name, c.address, c.city, c.state, c.state_code, c.pin_code, c.gstin, c.pan, c.email, c.phone, c.created_at, c.updated_at,
+          COALESCE(COUNT(CASE WHEN i.status != 'cancelled' THEN 1 END), 0)::integer AS invoice_count,
+          COALESCE(SUM(CASE WHEN i.status != 'cancelled' THEN i.grand_total ELSE 0 END), 0)::float AS total_invoiced
+        FROM clients c
+        LEFT JOIN invoices i ON 
+          (c.gstin IS NOT NULL AND c.gstin = i.buyer_data->>'gstin') 
+          OR (c.email IS NOT NULL AND c.email = i.buyer_data->>'email') 
+          OR (c.business_name = i.buyer_data->>'business_name')
+        WHERE c.business_name ILIKE ${term}
+           OR c.gstin ILIKE ${term}
+           OR c.email ILIKE ${term}
+        GROUP BY c.id
+        ORDER BY c.business_name ASC
       `;
     } else {
       clients = await sql`
-        SELECT * FROM clients
-        ORDER BY business_name ASC
+        SELECT 
+          c.id, c.business_name, c.contact_name, c.address, c.city, c.state, c.state_code, c.pin_code, c.gstin, c.pan, c.email, c.phone, c.created_at, c.updated_at,
+          COALESCE(COUNT(CASE WHEN i.status != 'cancelled' THEN 1 END), 0)::integer AS invoice_count,
+          COALESCE(SUM(CASE WHEN i.status != 'cancelled' THEN i.grand_total ELSE 0 END), 0)::float AS total_invoiced
+        FROM clients c
+        LEFT JOIN invoices i ON 
+          (c.gstin IS NOT NULL AND c.gstin = i.buyer_data->>'gstin') 
+          OR (c.email IS NOT NULL AND c.email = i.buyer_data->>'email') 
+          OR (c.business_name = i.buyer_data->>'business_name')
+        GROUP BY c.id
+        ORDER BY c.business_name ASC
       `;
     }
 
