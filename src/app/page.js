@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 import {
   FileText, Users, TrendingUp, Shield, Zap, Download,
   ChevronRight, ArrowRight, Check, Star, Menu, X,
@@ -238,10 +239,30 @@ function HeroDashboardPreview() {
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
+
+    // Check localStorage first for instant UI response
+    const flag = localStorage.getItem('user_logged_in');
+    if (flag === 'true') {
+      setIsLoggedIn(true);
+    }
+
+    // Validate with supabase in background
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setIsLoggedIn(true);
+        localStorage.setItem('user_logged_in', 'true');
+      } else {
+        setIsLoggedIn(false);
+        localStorage.removeItem('user_logged_in');
+      }
+    });
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -274,10 +295,18 @@ export default function LandingPage() {
 
           {/* Actions */}
           <div className="hidden md:flex items-center gap-4 text-[12px] font-medium">
-            <Link href="/login" className="text-[#8a8b98] hover:text-white transition-colors py-1">Log in</Link>
-            <Link href="/signup" className="bg-white hover:bg-white/90 text-black px-3.5 py-1.5 rounded-full font-medium transition-all shadow-[0_4px_12px_rgba(255,255,255,0.1)]">
-              Sign up free
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="bg-white hover:bg-white/90 text-black px-3.5 py-1.5 rounded-full font-medium transition-all shadow-[0_4px_12px_rgba(255,255,255,0.1)]">
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-[#8a8b98] hover:text-white transition-colors py-1">Log in</Link>
+                <Link href="/signup" className="bg-white hover:bg-white/90 text-black px-3.5 py-1.5 rounded-full font-medium transition-all shadow-[0_4px_12px_rgba(255,255,255,0.1)]">
+                  Sign up free
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -294,8 +323,14 @@ export default function LandingPage() {
             <Link href="#roadmap" className="text-lg text-[#8a8b98] hover:text-white" onClick={() => setMenuOpen(false)}>Roadmap</Link>
             <Link href="/dashboard" className="text-lg text-[#8a8b98] hover:text-white" onClick={() => setMenuOpen(false)}>Dashboard</Link>
             <div className="h-[1px] bg-white/[0.08] my-2" />
-            <Link href="/login" className="text-lg text-[#8a8b98] hover:text-white" onClick={() => setMenuOpen(false)}>Log in</Link>
-            <Link href="/signup" className="text-center py-2.5 bg-white text-black rounded-full font-semibold" onClick={() => setMenuOpen(false)}>Sign up free</Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="text-center py-2.5 bg-white text-black rounded-full font-semibold" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-lg text-[#8a8b98] hover:text-white" onClick={() => setMenuOpen(false)}>Log in</Link>
+                <Link href="/signup" className="text-center py-2.5 bg-white text-black rounded-full font-semibold" onClick={() => setMenuOpen(false)}>Sign up free</Link>
+              </>
+            )}
           </div>
         )}
       </header>
@@ -322,14 +357,23 @@ export default function LandingPage() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-24">
-            <Link href="/signup" className="group bg-white hover:bg-white/90 text-black px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.15)]">
-              Get started free
-              <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-            <Link href="/dashboard" className="border border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02] text-white px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-all">
-              Open Dashboard
-              <ChevronRight size={12} className="text-[#555]" />
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="group bg-white hover:bg-white/90 text-black px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.15)]">
+                Go to Dashboard
+                <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            ) : (
+              <>
+                <Link href="/signup" className="group bg-white hover:bg-white/90 text-black px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.15)]">
+                  Get started free
+                  <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+                <Link href="/dashboard" className="border border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02] text-white px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-all">
+                  Open Dashboard
+                  <ChevronRight size={12} className="text-[#555]" />
+                </Link>
+              </>
+            )}
           </div>
 
           {/* App Preview Mockup */}
@@ -828,13 +872,22 @@ export default function LandingPage() {
             Join thousands of modern businesses managing GST-compliant invoicing in seconds.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4">
-            <Link href="/signup" className="group bg-white hover:bg-white/90 text-black px-8 py-3 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.2)]">
-              Sign up free
-              <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-            <Link href="/login" className="border border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02] text-white px-8 py-3 rounded-full text-xs font-semibold flex items-center gap-1 transition-all">
-              Log in to workspace
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="group bg-white hover:bg-white/90 text-black px-8 py-3 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.2)]">
+                Go to Dashboard
+                <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            ) : (
+              <>
+                <Link href="/signup" className="group bg-white hover:bg-white/90 text-black px-8 py-3 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.2)]">
+                  Sign up free
+                  <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+                <Link href="/login" className="border border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02] text-white px-8 py-3 rounded-full text-xs font-semibold flex items-center gap-1 transition-all">
+                  Log in to workspace
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>

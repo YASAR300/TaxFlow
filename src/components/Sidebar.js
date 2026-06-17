@@ -52,6 +52,7 @@ export default function Sidebar({ user }) {
   const handleSignOut = async () => {
     setSigningOut(true);
     await supabase.auth.signOut();
+    localStorage.removeItem('user_logged_in');
     router.push('/login');
     router.refresh();
   };

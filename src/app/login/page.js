@@ -38,6 +38,7 @@ function LoginContent() {
           toast.error(error.message);
         } else {
           toast.success('Signed in successfully');
+          localStorage.setItem('user_logged_in', 'true');
           router.push('/');
           router.refresh();
         }
@@ -52,6 +53,9 @@ function LoginContent() {
         } else if (data?.user?.identities?.length === 0) {
           toast.error('An account with this email already exists.');
         } else {
+          if (data?.user) {
+            localStorage.setItem('user_logged_in', 'true');
+          }
           setSignupDone(true);
         }
       }
