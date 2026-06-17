@@ -7,8 +7,9 @@ import { createClient } from '@/utils/supabase/client';
 import {
   LayoutDashboard, FileText, Users, Building2,
   Search, ChevronDown, LogOut, Settings,
-  BarChart3, Plus, Loader2, Link2, FileCode, Landmark
+  BarChart3, Plus, Loader2, FileCode, Edit2
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
@@ -57,6 +58,32 @@ export default function Sidebar({ user }) {
   const [clientResults, setClientResults] = useState([]);
   const [loading, setLoading] = useState(false);
   
+  // Favorites list state
+  const [favorites, setFavorites] = useState([]);
+
+  // Favorites color choices
+  const FAVORITE_COLORS = [
+    { class: 'bg-blue-500/80', name: 'Blue' },
+    { class: 'bg-emerald-500/80', name: 'Emerald' },
+    { class: 'bg-yellow-500/80', name: 'Yellow' },
+    { class: 'bg-indigo-500/80', name: 'Indigo' },
+    { class: 'bg-red-500/80', name: 'Red' },
+    { class: 'bg-purple-500/80', name: 'Purple' },
+    { class: 'bg-violet-500/80', name: 'Violet' },
+    { class: 'bg-orange-500/80', name: 'Orange' },
+    { class: 'bg-pink-500/80', name: 'Pink' },
+  ];
+
+  // Inline edit state
+  const [editingHref, setEditingHref] = useState(null);
+  const [editLabel, setEditLabel] = useState('');
+  const [editColor, setEditColor] = useState('bg-blue-500/80');
+
+  // Inline add state
+  const [addingFav, setAddingFav] = useState(false);
+  const [addLabel, setAddLabel] = useState('');
+  const [addColor, setAddColor] = useState('bg-blue-500/80');
+  
   // Navigation active index state
   const [activeIndex, setActiveIndex] = useState(0);
   const searchInputRef = useRef(null);
@@ -67,6 +94,140 @@ export default function Sidebar({ user }) {
     localStorage.removeItem('user_logged_in');
     router.push('/login');
     router.refresh();
+  };
+
+  // 1. Load favorites from local storage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('user_favorites');
+    if (saved) {
+      try {
+        setFavorites(JSON.parse(saved));
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      const defaults = [
+        { label: 'Unpaid Invoices', href: '/invoices?status=unpaid', color: 'bg-orange-500/80' },
+        { label: 'Revenue Analytics', href: '/analytics', color: 'bg-emerald-500/80' }
+      ];
+      setFavorites(defaults);
+      localStorage.setItem('user_favorites', JSON.stringify(defaults));
+    }
+  }, []);
+
+  const getPrefilledLabel = () => {
+    if (typeof window === 'undefined') return 'Custom Page';
+    const searchParams = new URLSearchParams(window.location.search);
+    if (pathname === '/dashboard') return 'Dashboard';
+    if (pathname === '/invoices') {
+      const status = searchParams.get('status');
+      if (status) {
+        return `${status.charAt(0).toUpperCase() + status.slice(1)} Invoices`;
+      }
+      const search = searchParams.get('search');
+      if (search) {
+        return `Invoices: "${search}"`;
+      }
+      return 'Invoices List';
+    }
+    if (pathname === '/clients') {
+      const search = searchParams.get('search');
+      if (search) {
+        return `Clients: "${search}"`;
+      }
+      return 'Clients Database';
+    }
+    if (pathname === '/seller') return 'Seller Settings';
+    if (pathname === '/settings') return 'Workspace Settings';
+    if (pathname === '/analytics') return 'Revenue Analytics';
+    if (pathname === '/') {
+      const invId = searchParams.get('id');
+      if (invId) {
+        const inputEl = document.querySelector('input[placeholder="e.g. INV-2526-001"]');
+        if (inputEl && inputEl.value) {
+          return `Invoice ${inputEl.value}`;
+        }
+        return `Invoice ${invId.slice(0, 8)}`;
+      }
+      return 'Invoice Editor';
+    }
+    return 'Custom Page';
+  };
+
+  const getPrefilledColor = () => {
+    const colors = {
+      '/dashboard': 'bg-blue-500/80',
+      '/invoices': 'bg-indigo-500/80',
+      '/clients': 'bg-yellow-500/80',
+      '/seller': 'bg-red-500/80',
+      '/settings': 'bg-purple-500/80',
+      '/analytics': 'bg-emerald-500/80',
+      '/': 'bg-violet-500/80',
+    };
+    return colors[pathname] || 'bg-slate-500/80';
+  };
+
+  const handleAddFavoriteClick = () => {
+    if (addingFav) {
+      setAddingFav(false);
+      return;
+    }
+    setEditingHref(null);
+    setAddLabel(getPrefilledLabel());
+    setAddColor(getPrefilledColor());
+    setAddingFav(true);
+  };
+
+  const handleSaveNewFavorite = () => {
+    if (!addLabel.trim()) {
+      toast.error('Favorite name cannot be empty');
+      return;
+    }
+    const fullHref = window.location.pathname + window.location.search;
+    
+    if (favorites.some(f => f.href === fullHref)) {
+      toast.error('This exact page is already in Favorites');
+      return;
+    }
+
+    const updated = [...favorites, { label: addLabel, href: fullHref, color: addColor }];
+    setFavorites(updated);
+    localStorage.setItem('user_favorites', JSON.stringify(updated));
+    setAddingFav(false);
+    toast.success(`Added ${addLabel} to Favorites!`);
+  };
+
+  const handleStartEditFavorite = (e, fav) => {
+    e.stopPropagation();
+    setAddingFav(false);
+    setEditingHref(fav.href);
+    setEditLabel(fav.label);
+    setEditColor(fav.color);
+  };
+
+  const handleSaveEditFavorite = (targetHref) => {
+    if (!editLabel.trim()) {
+      toast.error('Favorite name cannot be empty');
+      return;
+    }
+    const updated = favorites.map(f => {
+      if (f.href === targetHref) {
+        return { ...f, label: editLabel, color: editColor };
+      }
+      return f;
+    });
+    setFavorites(updated);
+    localStorage.setItem('user_favorites', JSON.stringify(updated));
+    setEditingHref(null);
+    toast.success('Favorite updated successfully');
+  };
+
+  const handleRemoveFavorite = (e, hrefToRemove) => {
+    e.stopPropagation();
+    const updated = favorites.filter(f => f.href !== hrefToRemove);
+    setFavorites(updated);
+    localStorage.setItem('user_favorites', JSON.stringify(updated));
+    toast.success('Removed from Favorites');
   };
 
   // Keyboard listener to open search modal (Ctrl+K or Cmd+K)
@@ -195,7 +356,7 @@ export default function Sidebar({ user }) {
   const userInitial = user?.email?.charAt(0)?.toUpperCase() ?? '?';
 
   return (
-    <aside className="w-[220px] shrink-0 border-r border-[#2a2a2a] bg-[#111111] flex flex-col h-screen">
+    <aside className="w-[220px] shrink-0 border-r border-[#2a2a2a] bg-[#111111] flex flex-col h-screen select-none">
       {/* Workspace Header */}
       <div className="h-11 flex items-center px-3 border-b border-[#2a2a2a] gap-2 shrink-0">
         <Image src="/logo.png" alt="TaxFlow Logo" width={20} height={20} className="rounded object-contain shrink-0" />
@@ -244,22 +405,182 @@ export default function Sidebar({ user }) {
         ))}
       </div>
 
-      {/* Favorites / Quick links */}
-      <div className="px-2 py-1 flex-1">
-        <p className="text-[10px] font-semibold text-[#444] uppercase tracking-wider px-2.5 pb-1 flex items-center justify-between">
+      {/* Favorites Bookmarking Section */}
+      <div className="px-2 py-1 flex-1 overflow-y-auto custom-scrollbar flex flex-col">
+        <p className="text-[10px] font-semibold text-[#444] uppercase tracking-wider px-2.5 pb-1 flex items-center justify-between shrink-0">
           Favorites
-          <button className="text-[#444] hover:text-[#777] transition-colors">
-            <Plus size={12} />
+          <button 
+            onClick={handleAddFavoriteClick}
+            className="text-[#444] hover:text-[#ccc] transition-colors p-1"
+            title="Bookmark current page"
+          >
+            <Plus size={12} className={addingFav ? 'rotate-45 text-[#5e6ad2]' : ''} />
           </button>
         </p>
-        <button onClick={() => router.push('/invoices?status=unpaid')} className="w-full flex items-center gap-2.5 px-2.5 py-[5px] rounded-md text-[13px] text-[#666] hover:text-[#999] hover:bg-[#1e1e1e] transition-all text-left">
-          <span className="w-3.5 h-3.5 rounded-full bg-orange-500/80 shrink-0" />
-          <span className="truncate">Unpaid Invoices</span>
-        </button>
-        <button onClick={() => router.push('/analytics')} className="w-full flex items-center gap-2.5 px-2.5 py-[5px] rounded-md text-[13px] text-[#666] hover:text-[#999] hover:bg-[#1e1e1e] transition-all text-left">
-          <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/80 shrink-0" />
-          <span className="truncate">Revenue Analytics</span>
-        </button>
+
+        {/* Inline Add Card */}
+        {addingFav && (
+          <div className="bg-[#18181b] border border-[#2a2a2c] rounded-lg p-2.5 flex flex-col gap-2 mb-2 animate-in fade-in slide-in-from-top-1 duration-150 shrink-0">
+            <input 
+              type="text"
+              placeholder="Bookmark name"
+              value={addLabel}
+              onChange={(e) => setAddLabel(e.target.value)}
+              className="w-full bg-[#111] border border-[#2a2a2a] rounded px-2 py-1 text-xs text-[#e2e8f0] placeholder-[#555] focus:outline-none focus:border-[#5e6ad2]"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveNewFavorite();
+                if (e.key === 'Escape') setAddingFav(false);
+              }}
+            />
+            <div className="flex justify-between items-center gap-1">
+              <div className="flex gap-1">
+                {FAVORITE_COLORS.slice(0, 5).map((color) => (
+                  <button
+                    key={color.class}
+                    type="button"
+                    onClick={() => setAddColor(color.class)}
+                    className={`w-3.5 h-3.5 rounded-full ${color.class} transition-transform ${
+                      addColor === color.class ? 'ring-1 ring-[#e2e8f0] scale-110' : 'hover:scale-105'
+                    }`}
+                    title={color.name}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-1">
+                {FAVORITE_COLORS.slice(5).map((color) => (
+                  <button
+                    key={color.class}
+                    type="button"
+                    onClick={() => setAddColor(color.class)}
+                    className={`w-3.5 h-3.5 rounded-full ${color.class} transition-transform ${
+                      addColor === color.class ? 'ring-1 ring-[#e2e8f0] scale-110' : 'hover:scale-105'
+                    }`}
+                    title={color.name}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-1.5 mt-0.5">
+              <button
+                type="button"
+                onClick={() => setAddingFav(false)}
+                className="px-2 py-0.5 text-[10px] font-medium rounded text-[#555] hover:text-[#888]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveNewFavorite}
+                className="px-2.5 py-0.5 text-[10px] font-medium rounded bg-[#5e6ad2] text-white hover:bg-[#4f5abf]"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        )}
+        
+        <div className="flex flex-col gap-[1px]">
+          {favorites.map((fav) => {
+            const isEditing = editingHref === fav.href;
+            if (isEditing) {
+              return (
+                <div 
+                  key={fav.href}
+                  className="bg-[#18181b] border border-[#2a2a2c] rounded-lg p-2.5 flex flex-col gap-2 mb-1 animate-in fade-in duration-100"
+                >
+                  <input 
+                    type="text"
+                    value={editLabel}
+                    onChange={(e) => setEditLabel(e.target.value)}
+                    className="w-full bg-[#111] border border-[#2a2a2a] rounded px-2 py-1 text-xs text-[#e2e8f0] focus:outline-none focus:border-[#5e6ad2]"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveEditFavorite(fav.href);
+                      if (e.key === 'Escape') setEditingHref(null);
+                    }}
+                  />
+                  <div className="flex justify-between items-center gap-1">
+                    <div className="flex gap-1">
+                      {FAVORITE_COLORS.slice(0, 5).map((color) => (
+                        <button
+                          key={color.class}
+                          type="button"
+                          onClick={() => setEditColor(color.class)}
+                          className={`w-3.5 h-3.5 rounded-full ${color.class} transition-transform ${
+                            editColor === color.class ? 'ring-1 ring-[#e2e8f0] scale-110' : 'hover:scale-105'
+                          }`}
+                          title={color.name}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex gap-1">
+                      {FAVORITE_COLORS.slice(5).map((color) => (
+                        <button
+                          key={color.class}
+                          type="button"
+                          onClick={() => setEditColor(color.class)}
+                          className={`w-3.5 h-3.5 rounded-full ${color.class} transition-transform ${
+                            editColor === color.class ? 'ring-1 ring-[#e2e8f0] scale-110' : 'hover:scale-105'
+                          }`}
+                          title={color.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-1.5 mt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setEditingHref(null)}
+                      className="px-2 py-0.5 text-[10px] font-medium rounded text-[#555] hover:text-[#888]"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveEditFavorite(fav.href)}
+                      className="px-2.5 py-0.5 text-[10px] font-medium rounded bg-[#5e6ad2] text-white hover:bg-[#4f5abf]"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div 
+                key={fav.href}
+                onClick={() => router.push(fav.href)}
+                className="w-full flex items-center justify-between px-2.5 py-[5px] rounded-md text-[13px] text-[#888] hover:text-[#ccc] hover:bg-[#1e1e1e] transition-all cursor-pointer group/fav"
+              >
+                <div className="flex items-center gap-2.5 truncate">
+                  <span className={`w-2 h-2 rounded-full ${fav.color} shrink-0`} />
+                  <span className="truncate">{fav.label}</span>
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover/fav:opacity-100 transition-opacity shrink-0">
+                  <button 
+                    onClick={(e) => handleStartEditFavorite(e, fav)}
+                    className="hover:text-blue-400 transition-colors p-0.5 text-[#555]"
+                    title="Rename / Recolor"
+                  >
+                    <Edit2 size={10} />
+                  </button>
+                  <button 
+                    onClick={(e) => handleRemoveFavorite(e, fav.href)}
+                    className="hover:text-rose-500 transition-colors p-0.5 text-[#555]"
+                    title="Remove Favorite"
+                  >
+                    <Plus size={10} className="rotate-45" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          {favorites.length === 0 && !addingFav && (
+            <p className="text-[11px] text-[#444] px-2.5 py-1">No favorite bookmarks.</p>
+          )}
+        </div>
       </div>
 
       {/* User footer */}

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { 
   FileText, Search, Download, Edit2, Trash2, Check, 
@@ -20,15 +20,16 @@ function StatCard({ label, value, color }) {
   );
 }
 
-export default function InvoicesListPage() {
+function InvoicesListContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const mockUser = { email: 'developer@example.com' };
 
   // Query & state
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('');
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
+  const [status, setStatus] = useState(() => searchParams.get('status') || '');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [summary, setSummary] = useState({ totalAmount: 0, paidCount: 0, draftCount: 0, overdueCount: 0 });
@@ -37,6 +38,15 @@ export default function InvoicesListPage() {
   // PDF Generation State for List-download
   const [pdfGeneratingId, setPdfGeneratingId] = useState(null);
   const [tempInvoiceData, setTempInvoiceData] = useState(null);
+
+  // Sync state when URL params change (e.g. clicking sidebar favorites)
+  useEffect(() => {
+    const s = searchParams.get('status') || '';
+    const q = searchParams.get('search') || '';
+    setStatus(s);
+    setSearch(q);
+    setPage(1);
+  }, [searchParams]);
 
   // Fetch invoices on mount & filter/page changes
   const fetchInvoices = async () => {
@@ -504,5 +514,17 @@ export default function InvoicesListPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function InvoicesListPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen bg-[#0f0f0f] text-[#e2e8f0] items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5e6ad2] border-t-transparent"></div>
+      </div>
+    }>
+      <InvoicesListContent />
+    </Suspense>
   );
 }

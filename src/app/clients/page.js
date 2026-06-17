@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { 
   Users, Search, Plus, Edit2, Trash2, X, CheckCircle2, 
@@ -28,13 +29,14 @@ const DEFAULT_CLIENT_FORM = {
   stateCode: '',
 };
 
-export default function ClientsPage() {
+function ClientsContent() {
+  const searchParams = useSearchParams();
   const mockUser = { email: 'developer@example.com' };
 
   // List States
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
   
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -74,6 +76,12 @@ export default function ClientsPage() {
       setLoading(false);
     }
   };
+
+  // Sync state when URL params change (e.g. clicking sidebar favorites)
+  useEffect(() => {
+    const q = searchParams.get('search') || '';
+    setSearch(q);
+  }, [searchParams]);
 
   useEffect(() => {
     fetchClients();
@@ -576,5 +584,17 @@ export default function ClientsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ClientsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen bg-[#0f0f0f] text-[#e2e8f0] items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5e6ad2] border-t-transparent"></div>
+      </div>
+    }>
+      <ClientsContent />
+    </Suspense>
   );
 }

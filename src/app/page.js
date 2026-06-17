@@ -83,19 +83,19 @@ function InvoiceBuilderContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const handleSave = async () => {
+  const handleSave = React.useCallback(async () => {
     const saved = await handleSaveInvoice();
     if (saved && saved.id && !id) {
       router.replace(`/?id=${saved.id}`);
     }
-  };
+  }, [handleSaveInvoice, id, router]);
 
-  const handleNew = () => {
+  const handleNew = React.useCallback(() => {
     handleNewInvoice();
     if (id) {
       router.replace('/');
     }
-  };
+  }, [handleNewInvoice, id, router]);
 
   // Keyboard shortcut Ctrl+S or Cmd+S to save
   useEffect(() => {
