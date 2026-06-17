@@ -34,6 +34,7 @@ const mapToSnakeCase = (obj) => {
  */
 export default function useInvoiceBuilder() {
   // 1. State declarations
+  const [invoiceId, setInvoiceId] = useState(null);
   const [sellerInfo, setSellerInfo] = useState(DEFAULT_SELLER);
   const [buyerInfo, setBuyerInfo] = useState(DEFAULT_BUYER);
   const [invoiceMeta, setInvoiceMeta] = useState(DEFAULT_INVOICE_META());
@@ -220,11 +221,11 @@ export default function useInvoiceBuilder() {
     const { isValid } = validateForm();
     if (!isValid) {
       toast.error('Please fix the validation errors before saving.');
-      return;
+      return null;
     }
 
     setIsSaving(true);
-    const savingToastId = toast.loading('Saving invoice draft...');
+    const savingToastId = toast.loading(invoiceId ? 'Updating invoice...' : 'Saving invoice...');
 
     try {
       const payload = {
@@ -245,24 +246,35 @@ export default function useInvoiceBuilder() {
         terms: invoiceMeta.terms,
       };
 
-      const res = await fetch('/api/invoices', {
-        method: 'POST',
+      const url = invoiceId ? `/api/invoices/${invoiceId}` : '/api/invoices';
+      const method = invoiceId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
+        const savedData = await res.json();
         toast.success(`Invoice ${invoiceMeta.invoiceNumber} saved successfully!`, { id: savingToastId });
         setIsDirty(false);
         // Clear active draft from local storage since it's saved in the DB
         localStorage.removeItem('invoice_draft');
+
+        if (!invoiceId && savedData?.id) {
+          setInvoiceId(savedData.id);
+        }
+        return savedData;
       } else {
         const errorData = await res.json();
         toast.error(errorData.error || 'Failed to save invoice.', { id: savingToastId });
+        return null;
       }
     } catch (err) {
       console.error(err);
       toast.error('Error contacting server endpoint.', { id: savingToastId });
+      return null;
     } finally {
       setIsSaving(false);
     }
@@ -303,6 +315,7 @@ export default function useInvoiceBuilder() {
 
   // 11. Create new blank form
   const handleNewInvoice = async () => {
+    setInvoiceId(null);
     setSellerInfo(DEFAULT_SELLER);
     setBuyerInfo(DEFAULT_BUYER);
     setInvoiceMeta(DEFAULT_INVOICE_META());
@@ -355,6 +368,7 @@ export default function useInvoiceBuilder() {
   // 12.5 Load invoice from database (maps snake_case to camelCase)
   const handleLoadInvoice = (invoice) => {
     if (!invoice) return;
+    setInvoiceId(invoice.id || null);
 
     // Helper to map snake_case to camelCase
     const mapToCamelCase = (obj) => {
@@ -435,6 +449,7 @@ export default function useInvoiceBuilder() {
         const existing = data.invoices?.map((i) => i.invoice_number) || [];
         nextNum = generateInvoiceNumber(existing);
       }
+      setInvoiceId(null);
       setInvoiceMeta((prev) => ({
         ...prev,
         invoiceNumber: nextNum,
@@ -453,6 +468,7 @@ export default function useInvoiceBuilder() {
 
   return {
     // states
+    invoiceId,
     sellerInfo,
     buyerInfo,
     invoiceMeta,

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import InvoiceMetaForm from '@/components/forms/InvoiceMetaForm';
 import SellerForm from '@/components/forms/SellerForm';
@@ -16,18 +17,20 @@ import useInvoiceBuilder from '@/hooks/useInvoiceBuilder';
 import { printInvoice } from '@/utils/pdfGenerator';
 import Button from '@/components/ui/Button';
 import { MessageCircle, Download, Printer, Save, FilePlus, Copy, Eye } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
-/**
- * Main application dashboard wiring all components together.
- */
-export default function InvoiceBuilderPage() {
+function InvoiceBuilderContent() {
   const mockUser = { email: 'developer@example.com' };
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const id = searchParams.get('id');
   
   // History Drawer state
   const [historyOpen, setHistoryOpen] = useState(false);
 
   // Load state and operations from our master state manager hook
   const {
+    invoiceId,
     sellerInfo,
     buyerInfo,
     invoiceMeta,
@@ -58,17 +61,54 @@ export default function InvoiceBuilderPage() {
     handleDismissDraft,
   } = useInvoiceBuilder();
 
+  // Load invoice if id query param exists on mount/change
+  useEffect(() => {
+    if (id) {
+      const fetchInvoice = async () => {
+        try {
+          const res = await fetch(`/api/invoices/${id}`);
+          if (res.ok) {
+            const data = await res.json();
+            handleLoadInvoice(data);
+          } else {
+            toast.error('Failed to load invoice');
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error('Error loading invoice');
+        }
+      };
+      fetchInvoice();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const handleSave = async () => {
+    const saved = await handleSaveInvoice();
+    if (saved && saved.id && !id) {
+      router.replace(`/?id=${saved.id}`);
+    }
+  };
+
+  const handleNew = () => {
+    handleNewInvoice();
+    if (id) {
+      router.replace('/');
+    }
+  };
+
   // Keyboard shortcut Ctrl+S or Cmd+S to save
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        handleSaveInvoice();
+        handleSave();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSaveInvoice]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleSave]);
 
   // Create WhatsApp sharing payload
   const whatsappMessage = `Hi ${buyerInfo.businessName || 'Client'}, please find invoice ${
@@ -100,7 +140,7 @@ export default function InvoiceBuilderPage() {
           <div className="flex items-center gap-2 text-[13px]">
             <span className="text-[#999] font-semibold">TaxFlow Editor</span>
             <span className="text-[#333]">•</span>
-            <span className="text-[#555]">Create New GST Invoice</span>
+            <span className="text-[#555]">{invoiceId ? 'Edit Invoice' : 'Create New GST Invoice'}</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -118,7 +158,7 @@ export default function InvoiceBuilderPage() {
             <Button
               variant="secondary"
               size="sm"
-              onClick={handleSaveInvoice}
+              onClick={handleSave}
               loading={isSaving}
               icon={Save}
               className="text-[#e2e8f0] border-[#2a2a2a] bg-[#1a1a1a] hover:bg-[#252525]"
@@ -130,7 +170,7 @@ export default function InvoiceBuilderPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleNewInvoice}
+              onClick={handleNew}
               icon={FilePlus}
               className="text-[#888] hover:text-[#ccc] border-[#2a2a2a]"
             >
@@ -301,3 +341,16 @@ export default function InvoiceBuilderPage() {
     </div>
   );
 }
+
+export default function InvoiceBuilderPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen bg-[#0f0f0f] text-[#e2e8f0] items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5e6ad2] border-t-transparent"></div>
+      </div>
+    }>
+      <InvoiceBuilderContent />
+    </Suspense>
+  );
+}
+

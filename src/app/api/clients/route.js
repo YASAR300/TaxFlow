@@ -38,7 +38,7 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const {
-      business_name, contact_name, address, city, state,
+      id, business_name, contact_name, address, city, state,
       state_code, pin_code, gstin, pan, email, phone
     } = body;
 
@@ -47,7 +47,14 @@ export async function POST(req) {
     }
 
     let existingClient = null;
-    if (gstin && gstin.trim()) {
+    if (id) {
+      const results = await sql`SELECT * FROM clients WHERE id = ${id} LIMIT 1`;
+      if (results.length > 0) {
+        existingClient = results[0];
+      }
+    }
+
+    if (!existingClient && gstin && gstin.trim()) {
       const results = await sql`SELECT * FROM clients WHERE gstin = ${gstin.trim()} LIMIT 1`;
       if (results.length > 0) {
         existingClient = results[0];
@@ -66,6 +73,7 @@ export async function POST(req) {
           state = ${state || null},
           state_code = ${state_code || null},
           pin_code = ${pin_code || null},
+          gstin = ${gstin || null},
           pan = ${pan || null},
           email = ${email || null},
           phone = ${phone || null},
