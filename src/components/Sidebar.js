@@ -88,6 +88,33 @@ export default function Sidebar({ user }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const searchInputRef = useRef(null);
 
+  // Authenticated user state
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setCurrentUser(session.user);
+        }
+      } catch (err) {
+        console.error('Failed to get session user:', err);
+      }
+    };
+    fetchUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setCurrentUser(session.user);
+      } else {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
+
   const handleSignOut = async () => {
     setSigningOut(true);
     await supabase.auth.signOut();
@@ -353,7 +380,10 @@ export default function Sidebar({ user }) {
     }
   };
 
-  const userInitial = user?.email?.charAt(0)?.toUpperCase() ?? '?';
+  const emailToShow = currentUser?.email ?? user?.email ?? 'User';
+  const userInitial = emailToShow.charAt(0).toUpperCase();
+  const avatarUrl = currentUser?.user_metadata?.avatar_url || currentUser?.user_metadata?.picture || null;
+  const displayName = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || emailToShow.split('@')[0];
 
   return (
     <aside className="w-[220px] shrink-0 border-r border-[#2a2a2a] bg-[#111111] flex flex-col h-screen select-none">
@@ -586,16 +616,26 @@ export default function Sidebar({ user }) {
       {/* User footer */}
       <div className="border-t border-[#2a2a2a] px-2 py-2 shrink-0">
         <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-[#1e1e1e] transition-colors cursor-pointer group">
-          <div className="w-6 h-6 rounded-full bg-[#5e6ad2] flex items-center justify-center shrink-0 text-[11px] font-bold text-white">
-            {userInitial}
-          </div>
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt="Profile" className="w-6 h-6 rounded-full object-cover shrink-0" />
+          ) : (
+            <div className="w-6 h-6 rounded-full bg-[#5e6ad2] flex items-center justify-center shrink-0 text-[11px] font-bold text-white uppercase">
+              {userInitial}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] text-[#ccc] truncate leading-tight">{user?.email ?? 'User'}</p>
+            <p className="text-[12px] text-[#ccc] truncate leading-tight font-medium">
+              {displayName}
+            </p>
+            <p className="text-[10px] text-[#555] truncate leading-tight mt-0.5">
+              {emailToShow}
+            </p>
           </div>
           <button
             onClick={handleSignOut}
             disabled={signingOut}
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-[#555] hover:text-[#e2e8f0]"
+            className="opacity-0 group-hover:opacity-100 transition-opacity text-[#555] hover:text-[#e2e8f0] ml-auto"
             title="Sign out"
           >
             <LogOut size={13} />
