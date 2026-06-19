@@ -3,6 +3,12 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
+import BlurText from '@/components/BlurText';
+import SplitText from '@/components/SplitText';
+import ShinyText from '@/components/ShinyText';
+import ScrollFloat from '@/components/ScrollFloat';
+import ScrollReveal from '@/components/ScrollReveal';
+import LiquidEther from '@/components/LiquidEther';
 import {
   FileText, Users, TrendingUp, Shield, Zap, Download,
   ChevronRight, ArrowRight, Check, Star, Menu, X,
@@ -270,8 +276,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-black text-[#f7f7f8] relative">
 
 
-      {/* Top Background Radial Gradient */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[#5e6ad2]/10 rounded-full blur-[140px] pointer-events-none z-0" />
+
 
       {/* ── Header Navigation ───────────────────────────────────────────────── */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
@@ -335,25 +340,59 @@ export default function LandingPage() {
         )}
       </header>
 
-      {/* ── Hero Section ───────────────────────────────────────────────────── */}
-      <section className="relative pt-32 md:pt-40 pb-20 px-6 text-center z-10">
-        <div className="max-w-[1280px] mx-auto">
+      {/* ── Hero Section ─────────────────────────────────────────────── */}
+      <section className="relative pt-32 md:pt-40 pb-20 px-6 text-center overflow-hidden" style={{ background: '#000' }}>
+        {/* LiquidEther — full hero background */}
+        <div className="absolute inset-0 z-0">
+          <LiquidEther
+            colors={['#5e6ad2', '#a5b4fc', '#312e81', '#818cf8', '#1e1b4b']}
+            mouseForce={22}
+            cursorSize={130}
+            isViscous
+            viscous={28}
+            iterationsViscous={32}
+            iterationsPoisson={32}
+            resolution={0.5}
+            isBounce={false}
+            autoDemo
+            autoSpeed={0.4}
+            autoIntensity={2.4}
+            takeoverDuration={0.25}
+            autoResumeDelay={2000}
+            autoRampDuration={0.7}
+            style={{ width: '100%', height: '100%' }}
+          />
+          {/* bottom fade to black so it blends into the next section */}
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black to-transparent pointer-events-none" />
+        </div>
+
+        {/* Hero content — sits above the fluid */}
+        <div className="relative z-10 max-w-[1280px] mx-auto">
           {/* Badge Release */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/[0.08] bg-white/[0.02] text-white/60 text-[11px] font-medium mb-8 hover:bg-white/[0.04] transition-colors cursor-pointer">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/[0.08] bg-white/[0.05] text-white/60 text-[11px] font-medium mb-8 hover:bg-white/[0.08] transition-colors cursor-pointer backdrop-blur-sm">
             <Sparkles size={11} className="text-[#5e6ad2]" />
-            <span>TaxFlow 2026: The Invoicing Release</span>
+            <ShinyText text="TaxFlow 2026: The Invoicing Release" speed={4} className="text-[11px] font-medium" />
             <ChevronRight size={10} className="text-[#555]" />
           </div>
 
           {/* Heading */}
-          <h1 className="text-[44px] sm:text-[60px] md:text-[80px] font-bold tracking-tight leading-[1.05] mb-6 gradient-text-hero">
-            The invoicing system<br />for teams and freelancers
-          </h1>
+          <BlurText
+            text="The invoicing system for teams and freelancers"
+            delay={80}
+            animateBy="words"
+            direction="bottom"
+            stepDuration={0.4}
+            className="text-[44px] sm:text-[60px] md:text-[80px] font-bold tracking-tight leading-[1.05] mb-6 gradient-text-hero justify-center"
+          />
 
           {/* Subtitle */}
-          <p className="text-[16px] md:text-[18px] text-[#8a8b98] max-w-xl mx-auto mb-10 leading-relaxed">
-            TaxFlow is a better way to generate GST-compliant invoices, track client receivables, and automate your Indian tax workflow. Purpose-built for modern teams.
-          </p>
+          <div className="max-w-xl mx-auto mb-10">
+            <ShinyText
+              text="TaxFlow is a better way to generate GST-compliant invoices, track client receivables, and automate your Indian tax workflow. Purpose-built for modern teams."
+              speed={8}
+              className="text-[16px] md:text-[18px] leading-relaxed text-center block"
+            />
+          </div>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-24">
@@ -368,7 +407,7 @@ export default function LandingPage() {
                   Get started free
                   <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                <Link href="/dashboard" className="border border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02] text-white px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-all">
+                <Link href="/dashboard" className="border border-white/[0.15] hover:border-white/[0.25] bg-white/[0.05] text-white px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-all backdrop-blur-sm">
                   Open Dashboard
                   <ChevronRight size={12} className="text-[#555]" />
                 </Link>
@@ -384,9 +423,16 @@ export default function LandingPage() {
       {/* ── Customer Logos ─────────────────────────────────────────────────── */}
       <section className="py-16 border-y border-white/[0.05] bg-black z-10 relative">
         <div className="max-w-[1280px] mx-auto px-6">
-          <p className="text-[11px] font-semibold text-[#555] uppercase tracking-wider text-center mb-8">
-            Powering invoicing for India&apos;s leading teams
-          </p>
+          <SplitText
+            text="Powering invoicing for India's leading teams"
+            tag="p"
+            splitType="words"
+            from={{ opacity: 0, y: 10 }}
+            to={{ opacity: 1, y: 0 }}
+            delay={20}
+            duration={0.6}
+            className="text-[11px] font-semibold text-[#555] uppercase tracking-wider text-center mb-8"
+          />
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-8 items-center justify-center opacity-40 hover:opacity-60 transition-opacity">
             {['Vercel', 'Retool', 'Descript', 'Pitch', 'Raycast', 'Ramp', 'Mercury', 'OpenAI'].map((logo, index) => (
               <span key={index} className="text-center font-bold tracking-wider text-[13px] text-white hover:text-white transition-colors">{logo}</span>
@@ -400,9 +446,19 @@ export default function LandingPage() {
         <div className="max-w-[1280px] mx-auto">
           {/* Subheading Intro */}
           <div className="max-w-3xl mb-24 text-left">
-            <h2 className="text-[20px] md:text-[28px] leading-snug text-white font-medium max-w-2xl">
-              A new standard for billing & compliance. Purpose-built for modern Indian startups, CA firms, and freelancers. TaxFlow sets a new standard for planning, issuing, and filing invoices.
-            </h2>
+            <SplitText
+              text="A new standard for billing & compliance. Purpose-built for modern Indian startups, CA firms, and freelancers."
+              tag="h2"
+              splitType="words"
+              from={{ opacity: 0, y: 30 }}
+              to={{ opacity: 1, y: 0 }}
+              delay={40}
+              duration={0.9}
+              ease="power2.out"
+              rootMargin="-80px"
+              textAlign="left"
+              className="text-[20px] md:text-[28px] leading-snug text-white font-medium max-w-2xl"
+            />
           </div>
 
           {/* 3-Column Wireframe Grid */}
@@ -446,14 +502,30 @@ export default function LandingPage() {
           {/* Header Split: Left Title, Right Description */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             <div>
-              <h2 className="text-[32px] md:text-[42px] font-bold text-white tracking-tight leading-none">
-                Make billing decisions, not accounting errors.
-              </h2>
+              <SplitText
+                text="Make billing decisions, not accounting errors."
+                tag="h2"
+                splitType="chars"
+                from={{ opacity: 0, y: 50, rotateX: -15 }}
+                to={{ opacity: 1, y: 0, rotateX: 0 }}
+                delay={18}
+                duration={1.1}
+                ease="power3.out"
+                rootMargin="-60px"
+                textAlign="left"
+                className="text-[32px] md:text-[42px] font-bold text-white tracking-tight leading-none"
+              />
             </div>
             <div className="flex items-center">
-              <p className="text-[15px] text-[#8a8b98] leading-relaxed">
+              <ScrollReveal
+                enableBlur
+                baseOpacity={0}
+                baseRotation={2}
+                blurStrength={3}
+                textClassName="text-[15px] text-[#8a8b98] leading-relaxed"
+              >
                 Manual calculations lead to tax audit issues. TaxFlow automates CGST, SGST, and IGST division based on buyer states, pre-loads active HSN codes, and checks GSTIN checksum structures automatically.
-              </p>
+              </ScrollReveal>
             </div>
           </div>
 
@@ -560,14 +632,30 @@ export default function LandingPage() {
           {/* Header Split */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             <div>
-              <h2 className="text-[32px] md:text-[42px] font-bold text-white tracking-tight leading-none">
-                Define the invoicing roadmap.
-              </h2>
+              <SplitText
+                text="Define the invoicing roadmap."
+                tag="h2"
+                splitType="chars"
+                from={{ opacity: 0, y: 50, rotateX: -15 }}
+                to={{ opacity: 1, y: 0, rotateX: 0 }}
+                delay={22}
+                duration={1.1}
+                ease="power3.out"
+                rootMargin="-60px"
+                textAlign="left"
+                className="text-[32px] md:text-[42px] font-bold text-white tracking-tight leading-none"
+              />
             </div>
             <div className="flex items-center">
-              <p className="text-[15px] text-[#8a8b98] leading-relaxed">
+              <ScrollReveal
+                enableBlur
+                baseOpacity={0}
+                baseRotation={2}
+                blurStrength={3}
+                textClassName="text-[15px] text-[#8a8b98] leading-relaxed"
+              >
                 Stay on top of payout schedules. TaxFlow gives you a calendarized timeline view of all active, overdue, and pending invoices. Know exactly when your business cash inflows are hitting your accounts.
-              </p>
+              </ScrollReveal>
             </div>
           </div>
 
@@ -626,14 +714,30 @@ export default function LandingPage() {
           {/* Header Split */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             <div>
-              <h2 className="text-[32px] md:text-[42px] font-bold text-white tracking-tight leading-none">
-                A unified view for clients and compliance.
-              </h2>
+              <SplitText
+                text="A unified view for clients and compliance."
+                tag="h2"
+                splitType="chars"
+                from={{ opacity: 0, y: 50, rotateX: -15 }}
+                to={{ opacity: 1, y: 0, rotateX: 0 }}
+                delay={20}
+                duration={1.1}
+                ease="power3.out"
+                rootMargin="-60px"
+                textAlign="left"
+                className="text-[32px] md:text-[42px] font-bold text-white tracking-tight leading-none"
+              />
             </div>
             <div className="flex items-center">
-              <p className="text-[15px] text-[#8a8b98] leading-relaxed">
+              <ScrollReveal
+                enableBlur
+                baseOpacity={0}
+                baseRotation={2}
+                blurStrength={3}
+                textClassName="text-[15px] text-[#8a8b98] leading-relaxed"
+              >
                 Organize buyer ledgers in one central interface. Validate company addresses and GSTIN codes with state codes. Generate instant summaries ready for GSTR-1 filings.
-              </p>
+              </ScrollReveal>
             </div>
           </div>
 
@@ -722,14 +826,30 @@ export default function LandingPage() {
           {/* Header Split */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             <div>
-              <h2 className="text-[32px] md:text-[42px] font-bold text-white tracking-tight leading-none">
-                Analyze revenue and tax flows.
-              </h2>
+              <SplitText
+                text="Analyze revenue and tax flows."
+                tag="h2"
+                splitType="chars"
+                from={{ opacity: 0, y: 50, rotateX: -15 }}
+                to={{ opacity: 1, y: 0, rotateX: 0 }}
+                delay={22}
+                duration={1.1}
+                ease="power3.out"
+                rootMargin="-60px"
+                textAlign="left"
+                className="text-[32px] md:text-[42px] font-bold text-white tracking-tight leading-none"
+              />
             </div>
             <div className="flex items-center">
-              <p className="text-[15px] text-[#8a8b98] leading-relaxed">
+              <ScrollReveal
+                enableBlur
+                baseOpacity={0}
+                baseRotation={2}
+                blurStrength={3}
+                textClassName="text-[15px] text-[#8a8b98] leading-relaxed"
+              >
                 Get a high-contrast visual display of client billings and tax liabilities. Keep track of CGST, SGST, and IGST portions to simplify quarterly filing reports.
-              </p>
+              </ScrollReveal>
             </div>
           </div>
 
@@ -802,7 +922,19 @@ export default function LandingPage() {
         <div className="max-w-[1280px] mx-auto">
           <div className="mb-16">
             <span className="text-[11px] font-bold text-[#5e6ad2] uppercase tracking-wider block mb-3">Release Log</span>
-            <h2 className="text-[32px] md:text-[42px] font-bold text-white tracking-tight leading-none">Changelog</h2>
+            <SplitText
+              text="Changelog"
+              tag="h2"
+              splitType="chars"
+              from={{ opacity: 0, y: 60, scale: 0.8 }}
+              to={{ opacity: 1, y: 0, scale: 1 }}
+              delay={55}
+              duration={1.2}
+              ease="back.out(1.4)"
+              rootMargin="-60px"
+              textAlign="left"
+              className="text-[32px] md:text-[42px] font-bold text-white tracking-tight leading-none"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-white/[0.06] pt-12">
@@ -865,12 +997,26 @@ export default function LandingPage() {
           <div className="w-[800px] h-[300px] bg-[#5e6ad2]/10 rounded-full blur-[140px]" />
         </div>
         <div className="max-w-xl mx-auto space-y-6">
-          <h2 className="text-[44px] md:text-[64px] font-bold tracking-tight leading-none text-white gradient-text-hero">
-            Built for the future.<br />Available today.
-          </h2>
-          <p className="text-[15px] text-[#8a8b98] leading-relaxed max-w-sm mx-auto">
-            Join thousands of modern businesses managing GST-compliant invoicing in seconds.
-          </p>
+          <BlurText
+            text="Built for the future. Available today."
+            delay={100}
+            animateBy="words"
+            direction="bottom"
+            stepDuration={0.45}
+            className="text-[44px] md:text-[64px] font-bold tracking-tight leading-none gradient-text-hero justify-center"
+          />
+          <div className="flex justify-center">
+            <ScrollFloat
+              animationDuration={1.2}
+              ease="back.inOut(1.5)"
+              scrollStart="center bottom+=15%"
+              scrollEnd="bottom bottom-=10%"
+              stagger={0.025}
+              className="text-[15px] text-[#8a8b98]"
+            >
+              Join thousands of modern businesses managing GST-compliant invoicing in seconds.
+            </ScrollFloat>
+          </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4">
             {isLoggedIn ? (
               <Link href="/dashboard" className="group bg-white hover:bg-white/90 text-black px-8 py-3 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.2)]">
